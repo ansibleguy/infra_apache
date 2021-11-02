@@ -1,0 +1,24 @@
+---
+
+# ports will be left configured since I found no clean way to manage them statefully
+
+- name: "Apache | Debian | Config | Site '{{ name }}' | Removing web-root"
+  ansible.builtin.file:
+    path: "{{ site.serve.path }}"
+    state: absent
+    force: yes
+  when: site.mode == 'serve'
+
+- name: "Apache | Debian | Config | Site '{{ name }}' | Removing/Disabling site"
+  ansible.builtin.template:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "/etc/apache2/sites-available/site_{{ name }}.conf"
+    - "/etc/apache2/sites-enabled/site_{{ name }}.conf"
+
+- name: "Apache | Debian | Config | Site '{{ name }}' | Removing certificate from certbot"
+  ansible.builtin.shell: "certbot certonly --apache -{{ APACHE_LE_CONFIG.verbosity }} --non-interactive --agree-tos --email {{ site.admin }} --cert-name {{ name }}
+  --rsa-key-size {{ APACHE_LE_CONFIG.key_size }} --no-redirect --domain {{ site.domain }} {{ _apache_aliases }}"
+  ignore_errors: yes
+  when: site.ssl.mode == 'letsencrypt'

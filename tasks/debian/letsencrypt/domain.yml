@@ -1,0 +1,45 @@
+---
+
+- name: "Apache | Debian | LetsEncrypt Certbot | Checking if cert for domain '{{ site.domain }}' exists"
+  ansible.builtin.shell: 'certbot certificates'
+  register: domain_cert
+  changed_when: false
+
+# todo: check domains registered in current certificate (certbot certificates) and remove it if there are more than configured before re-configuring it
+
+- name: "Apache | Debian | LetsEncrypt Certbot | Set key/cert paths for domain '{{ site.domain }}'"
+  ansible.builtin.set_fact:
+    _path_key: "{{ APACHE_CONFIG.letsencrypt.path_key }}/{{ name }}"
+    _path_cert: "{{ APACHE_CONFIG.letsencrypt.path_cert }}/{{ name }}"
+    _path_live: "{{ APACHE_CONFIG.letsencrypt.path }}/live/{{ name }}"
+
+- name: "Apache | Debian | LetsEncrypt Certbot | Creating key/cert directories for domain '{{ site.domain }}'"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: 'root'
+    group: 'root'
+    mode: 0755
+  with_items:
+  - "{{ _path_key }}"
+  - "{{ _path_cert }}"
+
+- name: Apache | Debian | LetsEncrypt Certbot | Getting cert
+  ansible.builtin.include_tasks: domain_new.yml
+  when: domain_cert.stdout.find(site.domain) == -1
+
+- name: "Apache | Debian | LetsEncrypt Certbot | Linking certificates for domain '{{ site.domain }}'"
+  ansible.builtin.file:
+    state: link
+    src: "{{ item.value.src }}"
+    dest: "{{ item.value.dst }}"
+    owner: "{{ APACHE_CONFIG.user }}"
+    group: "{{ APACHE_CONFIG.group }}"
+    mode: 0400
+    follow: yes
+  with_dict:
+    - {'config': {'dst': "{{ _path_key }}/privkey.pem", 'src': "{{ _path_live }}/privkey.pem"}}
+    - {'config': {'dst': "{{ _path_cert }}/cert.pem", 'src': "{{ _path_live }}/cert.pem"}}
+    - {'config': {'dst': "{{ _path_cert }}/chain.pem", 'src': "{{ _path_live }}/chain.pem"}}
+    - {'config': {'dst': "{{ _path_cert }}/fullchain.pem", 'src': "{{ _path_live }}/fullchain.pem"}}
+  ignore_errors: yes

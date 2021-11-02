@@ -1,0 +1,68 @@
+---
+
+- name: "Apache | Debian | Config | Site '{{ name }}' | Configuring listen-ports"
+  ansible.builtin.blockinfile:
+    path: '/etc/apache2/ports.conf'
+    block: |
+      Listen {{ port }}
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - port '{{ port }}'"
+    insertafter: '# /etc/apache2/sites-enabled/000-default.conf'
+  ignore_errors: true
+  when:
+    - port != 80
+    - port != 443
+    - port != '80'
+    - port != '443'
+  loop_control:
+    loop_var: port
+  with_items:
+    - "{{ site.port_plain }}"
+    - "{{ site.port_ssl }}"
+
+- name: "Apache | Debian | Config | Site '{{ name }}' | Create root directory"
+  ansible.builtin.file:
+    path: "{{ site.serve.path }}"
+    state: directory
+    owner: "{{ APACHE_CONFIG.user }}"
+    group: "{{ APACHE_CONFIG.group }}"
+    mode: 0755
+  when: site.mode == 'serve'
+
+- name: "Apache | Debian | Config | Site '{{ name }}' | Configuring site"
+  ansible.builtin.template:
+    src: 'templates/etc/apache2/sites-available/site.conf.j2'
+    dest: "/etc/apache2/sites-available/site_{{ name }}.conf"
+    owner: 'root'
+    group: 'root'
+    mode: 0644
+    validate: 'apachectl -t -f %s'
+  register: apache_config_deployment
+  ignore_errors: yes
+
+- name: "Apache | Debian | Config | Site '{{ name }}' | Ask user"
+  ansible.builtin.pause:
+    prompt: "The apache config validation failed! Sometimes this is a false-negative.
+    Do you want to force the deployment? (yes/no)"
+  register: force_deploy
+  when: apache_config_deployment.failed
+
+- name: "Apache | Debian | Config | Site '{{ name }}' | Configuring site (forced)"
+  ansible.builtin.template:
+    src: 'templates/etc/apache2/sites-available/site.conf.j2'
+    dest: "/etc/apache2/sites-available/site_{{ name }}.conf"
+    owner: 'root'
+    group: 'root'
+    mode: 0644
+    backup: true
+  when:
+    - apache_config_deployment.failed
+    - force_deploy.user_input == 'yes'
+
+- name: "Apache | Debian | Config | Site '{{ name }}' | Enabling site"
+  ansible.builtin.file:
+    state: link
+    src: "/etc/apache2/sites-available/site_{{ name }}.conf"
+    dest: "/etc/apache2/sites-enabled/site_{{ name }}.conf"
+    owner: 'root'
+    group: 'root'
+    mode: 0644

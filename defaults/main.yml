@@ -1,0 +1,148 @@
+---
+
+# main switches
+configure_anti_ddos: true  # mod_evasive
+configure_security: true  # https://www.digitalocean.com/community/tutorials/how-to-set-up-mod_security-with-apache-on-debian-ubuntu
+
+# default config => is overwritten by provided config
+default_apache:
+  sites: {}
+
+  log:
+    path: '/var/log/apache2'
+    per_site: true
+    syslog: true
+    syslog_host:
+    syslog_port: 514
+    syslog_max_size: '4KiB'  # see: https://manpages.ubuntu.com/manpages/xenial/man1/logger.1.html
+    prefix_ue: 'apache_plain_'
+    prefix_ssl: 'apache_ssl_'
+
+  user: 'www-data'
+  group: 'www-data'
+
+  # additions to the main apache config
+  config:  # see: https://httpd.apache.org/docs/2.4/mod/core.html
+    ServerTokens: 'Prod'
+    ServerSignature: 'Off'
+    FileETag: 'None'
+    KeepAlive: 'On'
+    KeepAliveTimeout: 5
+    MaxKeepAliveRequests: 100
+    LimitRequestBody: 51200000  # 50MB => if you use file-uploads you might need to change this (0=unlimited, max=2147483647 [2GB])
+    LimitRequestFields: 50
+    LimitRequestFieldSize: 8190
+    LimitRequestLine: 8190
+    LimitXMLRequestBody: 1000000
+    TimeOut: 60
+    TraceEnable: 'off'
+    # ssl option => see: https://httpd.apache.org/docs/2.4/mod/mod_ssl.html
+    SSLProtocol: 'ALL -TLSv1.1 -TLSv1 -SSLv2 -SSLv3'
+    SSLCipherSuite: 'ALL:+HIGH:!ADH:!EXP:!SSLv2:!SSLv3:!MEDIUM:!LOW:!NULL:!aNULL'
+    SSLHonorCipherOrder: 'on'
+    SSLOptions: '+StrictRequire'
+    SSLSessionTickets: 'off'
+    SSLCompression: 'off'
+
+  headers:  # https://htaccessbook.com/important-security-headers/ | https://geekflare.com/http-header-implementation/
+    'Header always set Strict-Transport-Security': '"max-age=31536000; includeSubDomains; preload"'
+    'Referrer-Policy': '"same-origin"'
+    'Content-Security-Policy': "\"default-src 'self';\""
+    'X-Frame-Options': 'SAMEORIGIN'
+    'X-Content-Type-Options': 'nosniff'
+    'X-Permitted-Cross-Domain-Policies': '"none"'
+    'X-XSS-Protection': '"1; mode=block"'
+    'Header always edit Set-Cookie ^(.*)$': '$1;HttpOnly;Secure;SameSite=None'
+    # 'Header set Permissions-Policy': '"none"'
+    # 'Header set Content-Security-Policy': '"default-src https:; font-src https:; img-src https:; script-src https:; style-src https:;"'
+
+
+  modules:
+    present: ['ssl', 'headers', 'rewrite']
+    absent: ['autoindex']
+
+  letsencrypt:
+    key_size: 4096
+    path: '/etc/letsencrypt'
+    path_key: '/etc/ssl/private'
+    path_cert: '/etc/ssl/certs'
+    renew_timer: 'Mon *-*-* 00:00:00'
+    verbosity: 'v'
+
+APACHE_CONFIG: "{{ default_apache | combine(apache, recursive=true) }}"
+
+# site-specific config
+default_site_config:
+  mode: 'serve'
+  admin: 'apache@template.ansibleguy.net'
+  port_plain: 80
+  port_ssl: 443
+
+  config: {}  # site-specific setting-value pairs
+  config_additions: []  # lines that will 1-to-1 be appended to the site-config
+
+  security:  # https://www.nixpal.com/apache-httpd-hardening/
+    disable_root_index: true
+    disable_directory_access: true
+    disable_ssi_cgi: true
+    limit_directory_access: true
+
+  redirect:
+    target: 'https://github.com/ansibleguy'
+    request_uri: true
+
+  serve:
+    path: '/var/www/html'
+
+  ssl:
+    mode: 'letsencrypt'  # local/selfsigned/letsencrypt
+    file_pub: '/etc/apache2/ssl/DOMAIN.crt'  # should use the certificate chain => top is server cert; bottom root cert
+    file_key: '/etc/apache2/ssl/DOMAIN.key'
+    file_csr: '/etc/apache2/ssl/DOMAIN.csr'
+    file_ca:
+    csr_data:
+      country: 'AT'
+      org: 'AnsibleGuy'
+      email: 'apache@template.ansibleguy.net'
+      cn: 'Apache Certificate'
+
+default_modules:
+  # <IfModule ${MOD}>
+  # </IfModule>
+  prefork: # see: https://httpd.apache.org/docs/2.4/mod/mpm_common.html
+    ifname: 'prefork.c'
+    settings:
+      StartServers: 5
+      MinSpareServers: 5
+      MaxSpareServers: 10
+      MaxRequestWorkers: 256
+      MaxConnectionsPerChild: 0
+  mod_evasive:
+    ifname: 'mod_evasive20.c'
+    settings:
+      DOSHashTableSize: 4096
+      DOSPageCount: 25
+      DOSSiteCount: 100
+      DOSPageInterval: 1
+      DOSSiteInterval: 1
+      DOSBlockingPeriod: 60
+      DOSLogDir: "{{ CONFIG.log.path }}"
+      # DOSSystemCommand:
+      # DOSEmailNotify: mail@yourdomain.com
+      DOSWhitelist: [
+          '127.0.0.*', '192.168.*.*', '10.*.*.*', '172.16.*.*', '172.17.*.*', '172.18.*.*', '172.19.*.*',
+          '172.20.*.*', '172.21.*.*', '172.22.*.*', '172.23.*.*', '172.24.*.*', '172.25.*.*', '172.26.*.*',
+          '172.27.*.*', '172.28.*.*', '172.29.*.*', '172.30.*.*', '172.31.*.*', '172.32.*.*',
+      ]
+
+APACHE_MODULES: "{{ default_modules | combine(modules, recursive=true) }}"
+
+packages:
+  apache: ['apache2']
+  letsencrypt: ['python3-certbot-apache']
+
+apache_config_graylist: [
+    'SSLEngine', 'SSLCertificateKeyFile', 'SSLCertificateFile', 'SSLCertificateChainFile', 'ErrorLog', 'CustomLog', 'ServerAdmin',
+    'ServerAlias', 'ServerName', 'Redirect'
+]
+apache_restricted_methods: ['GET', 'POST', 'HEAD']

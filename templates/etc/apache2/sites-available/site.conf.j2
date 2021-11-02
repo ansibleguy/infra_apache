@@ -1,0 +1,163 @@
+<VirtualHost *:{{ site.port_plain }}>
+  ServerName {{ site.domain }}
+
+{% if site.aliases | length > 0 %}
+  ServerAlias {% for name in site.aliases %} {{ name }} {% endfor %}
+{% endif %}
+  ServerAdmin {{ site.admin }}
+
+  # log config
+{% if APACHE_CONFIG.log.syslog and APACHE_CONFIG.log.syslog_host is not none %}
+  ErrorLog "| /usr/bin/logger -n {{ APACHE_CONFIG.log.syslog_host }} -P {{ APACHE_CONFIG.log.syslog_port }} -p local1.error -t {{ APACHE_CONFIG.log.prefix_ue }}{{ name }}"
+  CustomLog "| /usr/bin/logger -n {{ APACHE_CONFIG.log.syslog_host }} -P {{ APACHE_CONFIG.log.syslog_port }} -p local1.info -t {{ APACHE_CONFIG.log.prefix_ue }}{{ name }}" combined
+{% elif APACHE_CONFIG.log.syslog %}
+  ErrorLog "| /usr/bin/logger -p local1.error -t {{ APACHE_CONFIG.log.prefix_ue }}{{ name }}"
+  CustomLog "| /usr/bin/logger -p local1.info -t {{ APACHE_CONFIG.log.prefix_ue }}{{ name }}" combined
+{% elif APACHE_CONFIG.log.per_site %}
+  ErrorLog {{ APACHE_CONFIG.log.path }}/{{ name }}_error.log
+  CustomLog {{ APACHE_CONFIG.log.path }}/{{ name }}_access.log combined
+{% else %}
+  ErrorLog {{ APACHE_CONFIG.log.path }}/error.log
+  CustomLog {{ APACHE_CONFIG.log.path }}/access.log combined
+{% endif %}
+
+  # redirect all to secure connection
+  Redirect permanent / https://{{ site.domain }}
+
+</VirtualHost>
+
+<VirtualHost *:{{ site.port_ssl }}>
+  ServerName {{ site.domain }}
+
+{% if site.aliases | length > 0 %}
+  ServerAlias {% for name in site.aliases %} {{ name }} {% endfor %}
+{% endif %}
+
+  ServerAdmin {{ site.admin }}
+
+  # log config
+{% if APACHE_CONFIG.log.syslog and APACHE_CONFIG.log.syslog_host is not none %}
+  ErrorLog "| /usr/bin/logger -n {{ APACHE_CONFIG.log.syslog_host }} -P {{ APACHE_CONFIG.log.syslog_port }} -p local1.error -t {{ APACHE_CONFIG.log.prefix_ue }}{{ name }}"
+  CustomLog "| /usr/bin/logger -n {{ APACHE_CONFIG.log.syslog_host }} -P {{ APACHE_CONFIG.log.syslog_port }} -p local1.info -t {{ APACHE_CONFIG.log.prefix_ue }}{{ name }}" combined
+{% elif APACHE_CONFIG.log.syslog %}
+  ErrorLog "| /usr/bin/logger -p local1.error -t {{ APACHE_CONFIG.log.prefix_ue }}{{ name }}"
+  CustomLog "| /usr/bin/logger -p local1.info -t {{ APACHE_CONFIG.log.prefix_ue }}{{ name }}" combined
+{% elif APACHE_CONFIG.log.per_site %}
+  ErrorLog {{ APACHE_CONFIG.log.path }}/{{ name }}_error.log
+  CustomLog {{ APACHE_CONFIG.log.path }}/{{ name }}_access.log combined
+{% else %}
+  ErrorLog {{ APACHE_CONFIG.log.path }}/error.log
+  CustomLog {{ APACHE_CONFIG.log.path }}/access.log combined
+{% endif %}
+
+  # ssl config
+  <IfModule mod_ssl.c>
+    SSLEngine on
+    SSLCertificateKeyFile /etc/ssl/private/{{ apache_site }}/privkey.pem
+    SSLCertificateFile /etc/ssl/certs/{{ apache_site }}/cert.pem
+    SSLCertificateChainFile /etc/ssl/certs/{{ apache_site }}/fullchain.pem
+  </IfModule>
+
+{% if APACHE_CONFIG.config | length > 0 %}
+  # global config
+{% for setting, value in APACHE_CONFIG.config.items() %}
+{%   if setting not in apache_config_graylist %}
+  {{ setting }} {{ value }}
+{%   endif %}
+{% endfor %}
+{% endif %}
+
+{% if site.config | length > 0 %}
+  # site-specific config
+{% for setting, value in site.config.items() %}
+{%   if setting not in apache_config_graylist %}
+  {{ setting }} {{ value }}
+{%   endif %}
+{% endfor %}
+{% endif %}
+
+{% if APACHE_CONFIG.headers | length > 0 %}
+  # global headers
+  <IfModule mod_headers.c>
+{%   for header, value in APACHE_CONFIG.headers.items() %}
+{%     if 'Header' in header %}
+    {{ header }} {{ value }}
+{%     else %}
+    Header set {{ header }} {{ value }}
+{%     endif %}
+{%   endfor %}
+
+  </IfModule>
+{% endif %}
+
+{% if site.headers | length > 0 %}
+  # site-specific headers
+  <IfModule mod_headers.c>
+{%   for header, value in site.headers.items() %}
+{%     if 'Header' in header %}
+    {{ header }} {{ value }}
+{%     else %}
+    Header set {{ header }} {{ value }}
+{%     endif %}
+{%   endfor %}
+
+  </IfModule>
+{% endif %}
+
+  # security config
+{% if site.security.restrict_methods %}
+  <LimitExcept {% for method in apache_restricted_methods %}{{ method }} {% endfor %}>
+    deny from all
+  </LimitExcept>
+{% endif %}
+{% if site.security.limit_directory_access %}
+  <Directory />
+    Options None
+    Order deny,allow
+    Deny from all
+  </Directory>
+{% endif %}
+{% if site.security.disable_directory_access %}
+  <Directory "=">
+    Require all denied
+  </Directory>
+{% endif %}
+
+{% if site.mode == 'redirect' %}
+  # redirect-mode config
+  Redirect permanent / {{ site.redirect.target }}
+{%   if site.redirect.request_uri %}
+  RedirectMatch permanent ^/(.*)$ {{ site.redirect.target }}/$1
+{%   else %}
+  RedirectMatch permanent ^/(.*)$ {{ site.redirect.target }}
+{%   endif %}
+
+{% elif site.mode == 'serve' %}
+  # serve-mode config
+  DocumentRoot {{ site.serve.path }}
+
+  # mode-specific security config
+  <Directory {{ site.serve.path }}>
+{%   if site.security.disable_ssi_cgi %}
+    Options -FollowSymLinks -ExecCGI -Includes
+    AllowOverride None
+    Require all granted
+{%   endif %}
+{%   if site.security.disable_root_index %}
+    Options -Indexes
+{%   endif %}
+  </Directory>
+
+
+{% endif %}
+
+{% if site.config_additions | length > 0 %}
+  # additional lines
+{% endif %}
+{% for line in site.config_additions %}
+  {{ line }}
+{% endfor %}
+
+</VirtualHost>
+
+ServerName {{ site.domain }}

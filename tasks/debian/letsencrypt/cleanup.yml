@@ -1,0 +1,13 @@
+---
+
+- name: Apache | Debian | LetsEncrypt Certbot | Cleanup | Disable temporary apache site
+  ansible.builtin.file:
+    state: absent
+    dest: '/etc/apache2/sites-enabled/tmp_le_dummy.conf'
+  register: tmp_site_config
+
+- name: Apache | Debian | LetsEncrypt Certbot | Cleanup | Reload apache
+  ansible.builtin.systemd:
+    name: 'apache2.service'
+    state: reloaded
+  when: tmp_site_config.changed

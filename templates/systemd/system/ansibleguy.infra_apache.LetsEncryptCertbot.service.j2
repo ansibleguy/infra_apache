@@ -1,0 +1,7 @@
+[Unit]
+Description=Service to renew LetsEncrypt Certificates using certbot
+
+[Service]
+Type=oneshot
+ExecStart=certbot renew -{{ APACHE_CONFIG.letsencrypt.verbosity }} --non-interactive --agree-tos --renew-with-new-domains --rsa-key-size {{ APACHE_CONFIG.letsencrypt.key_size }}
+SuccessExitStatus=0
