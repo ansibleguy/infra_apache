@@ -1,8 +1,11 @@
+# {{ ansible_managed }}
+# ansibleguy.infra_apache
+
 <VirtualHost *:{{ site.port_plain }}>
   ServerName {{ site.domain }}
 
 {% if site.aliases | length > 0 %}
-  ServerAlias {% for name in site.aliases %} {{ name }} {% endfor %}
+  ServerAlias {% for name in site.aliases %} {{ name }} {% endfor %}{% if site.ip is not none %} {{ site.ip }}{% endif %}
 {% endif %}
   ServerAdmin {{ site.admin }}
 
@@ -30,18 +33,18 @@
   ServerName {{ site.domain }}
 
 {% if site.aliases | length > 0 %}
-  ServerAlias {% for name in site.aliases %} {{ name }} {% endfor %}
+  ServerAlias {% for alias in site.aliases %} {{ alias }} {% endfor %}{% if site.ip is not none %} {{ site.ip }}{% endif %}
 {% endif %}
 
   ServerAdmin {{ site.admin }}
 
   # log config
 {% if APACHE_CONFIG.log.syslog and APACHE_CONFIG.log.syslog_host is not none %}
-  ErrorLog "| /usr/bin/logger -n {{ APACHE_CONFIG.log.syslog_host }} -P {{ APACHE_CONFIG.log.syslog_port }} -p local1.error -t {{ APACHE_CONFIG.log.prefix_ue }}{{ name }}"
-  CustomLog "| /usr/bin/logger -n {{ APACHE_CONFIG.log.syslog_host }} -P {{ APACHE_CONFIG.log.syslog_port }} -p local1.info -t {{ APACHE_CONFIG.log.prefix_ue }}{{ name }}" combined
+  ErrorLog "| /usr/bin/logger -n {{ APACHE_CONFIG.log.syslog_host }} -P {{ APACHE_CONFIG.log.syslog_port }} -p local1.error -t {{ APACHE_CONFIG.log.prefix_ssl }}{{ name }}"
+  CustomLog "| /usr/bin/logger -n {{ APACHE_CONFIG.log.syslog_host }} -P {{ APACHE_CONFIG.log.syslog_port }} -p local1.info -t {{ APACHE_CONFIG.log.prefix_ssl }}{{ name }}" combined
 {% elif APACHE_CONFIG.log.syslog %}
-  ErrorLog "| /usr/bin/logger -p local1.error -t {{ APACHE_CONFIG.log.prefix_ue }}{{ name }}"
-  CustomLog "| /usr/bin/logger -p local1.info -t {{ APACHE_CONFIG.log.prefix_ue }}{{ name }}" combined
+  ErrorLog "| /usr/bin/logger -p local1.error -t {{ APACHE_CONFIG.log.prefix_ssl }}{{ name }}"
+  CustomLog "| /usr/bin/logger -p local1.info -t {{ APACHE_CONFIG.log.prefix_ssl }}{{ name }}" combined
 {% elif APACHE_CONFIG.log.per_site %}
   ErrorLog {{ APACHE_CONFIG.log.path }}/{{ name }}_error.log
   CustomLog {{ APACHE_CONFIG.log.path }}/{{ name }}_access.log combined
@@ -53,9 +56,11 @@
   # ssl config
   <IfModule mod_ssl.c>
     SSLEngine on
-    SSLCertificateKeyFile /etc/ssl/private/{{ apache_site }}/privkey.pem
-    SSLCertificateFile /etc/ssl/certs/{{ apache_site }}/cert.pem
-    SSLCertificateChainFile /etc/ssl/certs/{{ apache_site }}/fullchain.pem
+    SSLCertificateKeyFile {{ APACHE_CONFIG.ssl.path }}/{{ name }}.key
+    SSLCertificateFile {{ APACHE_CONFIG.ssl.path }}/{{ name }}.crt
+{% if site.ssl.mode != 'selfsigned' %}
+    SSLCertificateChainFile {{ APACHE_CONFIG.ssl.path }}/{{ name }}{% if site.ssl.mode == 'letsencrypt' %}.fullchain{% else %}.chain{% endif %}.crt
+{% endif %}
   </IfModule>
 
 {% if APACHE_CONFIG.config | length > 0 %}
@@ -106,20 +111,15 @@
 
   # security config
 {% if site.security.restrict_methods %}
-  <LimitExcept {% for method in apache_restricted_methods %}{{ method }} {% endfor %}>
-    deny from all
-  </LimitExcept>
-{% endif %}
-{% if site.security.limit_directory_access %}
+  <IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_METHOD} ^(?!{% for method in apache_restricted_methods %}{{ method }}{% if not loop.last %}|{% endif %}{% endfor %})
+    RewriteRule .* - [F]
+  </IfModule>
   <Directory />
-    Options None
-    Order deny,allow
-    Deny from all
-  </Directory>
-{% endif %}
-{% if site.security.disable_directory_access %}
-  <Directory "=">
-    Require all denied
+    <LimitExcept {% for method in apache_restricted_methods %}{{ method }} {% endfor %}>
+      deny from all
+    </LimitExcept>
   </Directory>
 {% endif %}
 
@@ -157,6 +157,11 @@
 {% for line in site.config_additions %}
   {{ line }}
 {% endfor %}
+
+{% if site.app_include %}
+  # additional application config include
+  IncludeOptional site_{{ name }}_app.conf
+{% endif %}
 
 </VirtualHost>
 

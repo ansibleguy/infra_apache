@@ -1,0 +1,67 @@
+---
+
+- name: "Apache | Debian | Site '{{ name }}' | Certs | Creating public directory"
+  ansible.builtin.file:
+    path: "{{ APACHE_CONFIG.ssl.path }}"
+    state: directory
+    mode: 0755
+
+- name: "Apache | Debian | Site '{{ name }}' | Certs | Creating certificates"
+  ansible.builtin.import_role:
+    name: ansibleguy.infra_certs
+  vars:
+    certs:
+      mode: "{{ site.ssl.mode }}"
+      path: "{{ APACHE_CONFIG.ssl.path }}"
+      owner_key: "{{ APACHE_CONFIG.user }}"
+      group_key: "{{ APACHE_CONFIG.group }}"
+      owner_cert: "{{ APACHE_CONFIG.user }}"
+      group_cert: "{{ APACHE_CONFIG.group }}"
+      cert:
+        name: "{{ name }}"
+        cn: "{{ site.ssl.cert.cn }}"
+        org: "{{ site.ssl.cert.org }}"
+        ou: "{{ site.ssl.cert.ou }}"
+        country: "{{ site.ssl.cert.country }}"
+        state: "{{ site.ssl.cert.state }}"
+        locality: "{{ site.ssl.cert.locality }}"
+        email: "{{ site.ssl.cert.email }}"
+        crl_distribution: "{{ site.ssl.cert.crl_distribution }}"
+        domains: "{{ site.aliases + [site.domain] }}"
+        ips: ["{{ site.ip }}"]
+      ca:
+        path: "{{ APACHE_CONFIG.ssl.path }}"
+        cn: "{{ site.ssl.ca.cn | default(APACHE_CONFIG.ssl.ca.cn, true) }}"
+        org: "{{ site.ssl.ca.org | default(APACHE_CONFIG.ssl.ca.org, true) }}"
+        ou: "{{ site.ssl.ca.ou | default(APACHE_CONFIG.ssl.ca.ou, true) }}"
+        country: "{{ site.ssl.ca.country | default(APACHE_CONFIG.ssl.ca.country, true) }}"
+        state: "{{ site.ssl.ca.state | default(APACHE_CONFIG.ssl.ca.state, true) }}"
+        locality: "{{ site.ssl.ca.locality | default(APACHE_CONFIG.ssl.ca.locality, true) }}"
+        email: "{{ site.ssl.ca.email | default(APACHE_CONFIG.ssl.ca.email, true) }}"
+        pwd: "{{ site.ssl.ca.pwd | default(APACHE_CONFIG.ssl.ca.pwd, true) }}"
+  when: "site.ssl.mode in ['ca', 'selfsigned']"
+
+- name: "Apache | Debian | Site '{{ name }}' | Certs | Trying to copy cert pub"
+  ansible.builtin.copy:
+    dest: "{{ APACHE_CONFIG.ssl.path }}/{{ name }}.crt"
+    src: "files/certs/{{ name }}.crt"
+    mode: 0644
+    owner: "{{ APACHE_CONFIG.user }}"
+    group: "{{ APACHE_CONFIG.group }}"
+  ignore_errors: true
+  register: copy_cert_pub
+  when: site.ssl.mode == 'existing'
+
+- name: "Apache | Debian | Site '{{ name }}' | Certs | Trying to copy cert pk"
+  ansible.builtin.copy:
+    dest: "{{ APACHE_CONFIG.ssl.path }}/{{ name }}.key"
+    src: "files/certs/{{ name }}.key"
+    mode: 0640
+    owner: "{{ APACHE_CONFIG.user }}"
+    group: "{{ APACHE_CONFIG.group }}"
+  no_log: true
+  register: copy_cert_key
+  ignore_errors: true
+  when:
+    - site.ssl.mode == 'existing'
+    - copy_cert_pub.failed is undefined or not copy_cert_pub.failed

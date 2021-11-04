@@ -2,54 +2,101 @@
 
 - name: Apache | Debian | Install apache
   ansible.builtin.apt:
-    name: "{{ packages.apache }}"
+    name: ['apache2']
     state: present
+    update_cache: true
+  tags: [base]
 
-- name: Apache | Debian | Checking if all sites exist (1/2)
-  ansible.builtin.stat:
-    path: "/etc/apache2/sites-available/site_{{ item.key | safe_key }}.conf"
-  register: sites_exist_raw
-  with_dict: "{{ APACHE_CONFIG.sites }}"
+- name: Apache | Debian | Creating service user
+  ansible.builtin.user:
+    name: "{{ APACHE_CONFIG.user }}"
+    shell: '/usr/sbin/nologin'
+    comment: 'Apache Service User'
+  tags: [base]
 
-- name: Apache | Debian | Checking if all sites exist (2/2)
-  ansible.builtin.set_fact:
-    sites_exist: "{{ sites_exist_raw | json_query('[*].results.stat.exists') | all_true }}"
-
-- name: Apache | Debian | Getting certificate via LetsEncrypt
-  ansible.builtin.import_tasks: letsencrypt/main.yml
-  when: >
-    (APACHE_CONFIG.ssl.renew or
-    not sites_exist) and
-    APACHE_CONFIG.ssl.mode == 'letsencrypt'
+- name: Apache | Debian | Setting service user
+  ansible.builtin.lineinfile:
+    state: present
+    path: '/etc/apache2/envvars'
+    regexp: "{{ item.reg }}"
+    line: "{{ item.line }}"
+  register: apache_user_update_raw
+  loop:
+    - {reg: '^export APACHE_RUN_USER=', line: "export APACHE_RUN_USER={{ APACHE_CONFIG.user }}"}
+    - {reg: '^export APACHE_RUN_GROUP=', line: "export APACHE_RUN_GROUP={{ APACHE_CONFIG.group }}"}
+  tags: [base, config]
 
 - name: Apache | Debian | Enabling apache modules
   community.general.apache2_module:
     state: present
     name: "{{ item }}"
   when: item not in APACHE_CONFIG.modules.absent
+  register: apache_mods_enable_raw
   loop: "{{ APACHE_CONFIG.modules.present }}"
+  tags: [base]
 
 - name: Apache | Debian | Disabling apache modules
   community.general.apache2_module:
     state: absent
     name: "{{ item }}"
+    force: True
+    ignore_configcheck: True
+  register: apache_mods_disable_raw
   loop: "{{ APACHE_CONFIG.modules.absent }}"
+  tags: [base]
 
 # todo: configure module settings
 
-# todo: check if apache2.conf editing is still needed
-#- name: Apache | Debian | Adding global config
-#  ansible.builtin.blockinfile:
-#    path: '/etc/apache2/apache2.conf'
-#    block: |
-#      {% for setting, value in apache_config_additions_default.items() %}
-#        {{ setting }} {{ value }}
-#      {% endfor %}
-#      {% for setting, value in apache_config_additions.items() %}
-#        {{ setting }} {{ value }}
-#      {% endfor %}
-#    marker: "# {mark} ANSIBLE MANAGED BLOCK - global config"
-#    validate: 'apachectl -t -f %s'
+- name: Apache | Debian | Adding main settings
+  ansible.builtin.lineinfile:
+    state: present
+    path: '/etc/apache2/apache2.conf'
+    regexp: "{{ item.key }}\\s"
+    line: "{{ item.key }} {{ item.value }}"
+    validate: "apachectl -t -f %s"
+  register: apache_settings_raw
+  with_dict: "{{ APACHE_CONFIG.settings }}"
+  tags: [config, base]
+
+- name: Apache | Debian | Restarting apache
+  ansible.builtin.systemd:
+    name: 'apache2.service'
+    state: restarted
+  when: >
+    apache_user_update_raw.changed or
+    apache_mods_enable_raw.changed or
+    apache_mods_disable_raw.changed or
+    apache_settings_raw.changed
+  tags: [base, config]
+
+# is an additional site-loop since certificates can be pre-/absent
+- name: Apache | Debian |  Getting certificates using LetsEncrypt
+  ansible.builtin.include_role:
+    name: ansibleguy.infra_certs
+  when: site.ssl.mode == 'letsencrypt'
+  vars:
+    site: "{{ default_site_config | combine(site_item.value, recursive=true) }}"
+    name: "{{ site_item.key | safe_key }}"
+    certs:
+      mode: 'le_certbot'
+      path: "{{ APACHE_CONFIG.ssl.path }}"
+      owner_key: "{{ APACHE_CONFIG.user }}"
+      group_key: "{{ APACHE_CONFIG.group }}"
+      owner_cert: "{{ APACHE_CONFIG.user }}"
+      group_cert: "{{ APACHE_CONFIG.group }}"
+      letsencrypt:
+        certs: "{{ site | prepare_letsencrypt(name) }}"
+        path: "{{ APACHE_CONFIG.letsencrypt.path }}"
+        email: "{{ APACHE_CONFIG.letsencrypt.email }}"
+        renew_timer: "{{ APACHE_CONFIG.letsencrypt.renew_timer }}"
+        verbosity: "{{ APACHE_CONFIG.letsencrypt.verbosity }}"
+        service: 'apache'
+        renew: "{{ APACHE_CONFIG.letsencrypt.renew }}"
+  loop_control:
+    loop_var: site_item
+  with_dict: "{{ APACHE_CONFIG.sites }}"
+  no_log: true
+  tags: [certs, sites]
 
 - name: Apache | Debian | Disabling default apache sites
   ansible.builtin.file:
@@ -58,16 +105,19 @@
   with_items:
     - '000-default.conf'
     - 'default-ssl.conf'
+  tags: [config, base]
 
-- name: Apache | Debian | Removing apache site
+- name: Apache | Debian | Removing site
   ansible.builtin.include_tasks: rm_site.yml
+  when: site.state != 'present'
   vars:
-    site: "{{ default_site_config | combine(site_item, recursive=true) }}"
+    site: "{{ default_site_config | combine(site_item.value, recursive=true) }}"
     name: "{{ site_item.key | safe_key }}"
-  when: site_item.state | default('present') != 'present'
   loop_control:
     loop_var: site_item
   with_dict: "{{ APACHE_CONFIG.sites }}"
+  no_log: true
+  tags: [config, sites, certs]
 
 - name: Apache | Debian | Reloading apache
   ansible.builtin.systemd:
@@ -75,15 +125,16 @@
     state: reloaded
   tags: [base, config, sites, certs]
 
-- name: Apache | Debian | Adding apache site
+- name: Apache | Debian | Adding site
   ansible.builtin.include_tasks: add_site.yml
+  when: site.state == 'present'
   vars:
-    site: "{{ default_site_config | combine(site_item, recursive=true) }}"
+    site: "{{ default_site_config | combine(site_item.value, recursive=true) }}"
     name: "{{ site_item.key | safe_key }}"
-  when: site_item.state | default('present') == 'present'
   loop_control:
     loop_var: site_item
   with_dict: "{{ APACHE_CONFIG.sites }}"
+  tags: [config, sites, certs]
 
 - name: Apache | Debian | Starting/Enabling apache
   ansible.builtin.systemd:

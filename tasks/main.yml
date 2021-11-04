@@ -1,5 +1,14 @@
 ---
 
+- name: Apache | Checking config
+  ansible.builtin.fail:
+    msg: "The required configuration was not provided!
+    Needed: 'apache', 'apache.sites'"
+  when: >
+    apache is undefined or
+    apache.sites is undefined or
+    apache.sites | length == 0
+
 - name: Apache | Processing debian config
   ansible.builtin.import_tasks: debian/main.yml
   when: "ansible_distribution|lower in ['debian', 'ubuntu']"
