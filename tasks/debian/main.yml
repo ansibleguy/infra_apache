@@ -113,6 +113,7 @@
   vars:
     site: "{{ default_site_config | combine(site_item.value, recursive=true) }}"
     name: "{{ site_item.key | safe_key }}"
+    path: "{{ site.serve.path }}"
   loop_control:
     loop_var: site_item
   with_dict: "{{ APACHE_CONFIG.sites }}"
@@ -131,9 +132,11 @@
   vars:
     site: "{{ default_site_config | combine(site_item.value, recursive=true) }}"
     name: "{{ site_item.key | safe_key }}"
+    path: "{{ site.serve.path }}"
   loop_control:
     loop_var: site_item
   with_dict: "{{ APACHE_CONFIG.sites }}"
+  no_log: true
   tags: [config, sites, certs]
 
 - name: Apache | Debian | Starting/Enabling apache

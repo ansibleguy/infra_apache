@@ -4,7 +4,7 @@
   ansible.builtin.fail:
     msg: "The required site-configuration was not provided!
     Needed: 'domain'"
-  when: site.domain is undefined
+  when: site.domain is none or site.domain is undefined
   tags: [config, sites, certs]
 
 - name: "Apache | Debian | Site '{{ name }}' | Configuring certificates"

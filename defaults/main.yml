@@ -60,7 +60,7 @@ default_apache:
     # 'Header set Permissions-Policy': '"none"'
     # 'Header set Content-Security-Policy': '"default-src https:; font-src https:; img-src https:; script-src https:; style-src https:;"'
 
-  ssl:
+  ssl:  # see: https://github.com/ansibleguy/infra_certs
     path: '/etc/apache2/ssl'
     ca:
       file:  # can be used if you want to use an existing ca
@@ -85,6 +85,9 @@ default_apache:
     email:
     renew: false  # if a renewal should be started by the role; the renewal service will auto-renew the certificates otherwise
 
+  security:
+    restricted_methods: ['GET', 'POST', 'HEAD']
+
 APACHE_CONFIG: "{{ default_apache | combine(apache, recursive=true) }}"
 
 # site-specific config
@@ -94,6 +97,7 @@ default_site_config:
   admin: 'apache@template.ansibleguy.net'
   port_plain: 80
   port_ssl: 443
+  domain:
   aliases: []
   ip:
 
@@ -114,7 +118,7 @@ default_site_config:
   serve:
     path: '/var/www/html'
 
-  ssl:
+  ssl:  # see: https://github.com/ansibleguy/infra_certs
     mode: 'selfsigned'  # existing/selfsigned/ca/letsencrypt
     # existing:
     #   We expect the certs to be placed in the role's 'files' directory named like the site
@@ -182,4 +186,3 @@ apache_config_graylist: [
     'SSLEngine', 'SSLCertificateKeyFile', 'SSLCertificateFile', 'SSLCertificateChainFile', 'ErrorLog', 'CustomLog', 'ServerAdmin',
     'ServerAlias', 'ServerName', 'Redirect'
 ]
-apache_restricted_methods: ['GET', 'POST', 'HEAD']

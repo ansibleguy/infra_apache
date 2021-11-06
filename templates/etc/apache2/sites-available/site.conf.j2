@@ -113,11 +113,11 @@
 {% if site.security.restrict_methods %}
   <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteCond %{REQUEST_METHOD} ^(?!{% for method in apache_restricted_methods %}{{ method }}{% if not loop.last %}|{% endif %}{% endfor %})
+    RewriteCond %{REQUEST_METHOD} ^(?!{% for method in APACHE_CONFIG.security.restricted_methods %}{{ method }}{% if not loop.last %}|{% endif %}{% endfor %})
     RewriteRule .* - [F]
   </IfModule>
   <Directory />
-    <LimitExcept {% for method in apache_restricted_methods %}{{ method }} {% endfor %}>
+    <LimitExcept {% for method in APACHE_CONFIG.security.restricted_methods %}{{ method }} {% endfor %}>
       deny from all
     </LimitExcept>
   </Directory>
