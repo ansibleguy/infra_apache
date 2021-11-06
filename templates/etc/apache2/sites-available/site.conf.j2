@@ -160,7 +160,7 @@
 
 {% if site.app_include %}
   # additional application config include
-  IncludeOptional site_{{ name }}_app.conf
+  IncludeOptional /etc/apache2/sites-available/site_{{ name }}_app.conf
 {% endif %}
 
 </VirtualHost>
