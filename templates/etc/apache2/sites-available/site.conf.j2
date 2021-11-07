@@ -141,11 +141,11 @@
 {%   if site.security.disable_ssi_cgi %}
     Options -FollowSymLinks -ExecCGI -Includes
     AllowOverride None
-    Require all granted
 {%   endif %}
 {%   if site.security.disable_root_index %}
     Options -Indexes
 {%   endif %}
+    Require all granted
   </Directory>
 
 

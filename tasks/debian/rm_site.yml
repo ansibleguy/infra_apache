@@ -1,12 +1,20 @@
 ---
 
 # ports will be left configured since I found no clean way to manage them statefully
-# also: the web-root will be left as-is
 
-- name: "Apache | Debian | Config | Site '{{ name }}' | Removing/Disabling site"
+- name: "Apache | Debian | Remove Site '{{ name }}' | Ask user"
+  ansible.builtin.pause:
+    prompt: "Do you really want to remove the apache site '{{ name }}' and all of its data?"
+  register: removal_prompt
+  when: not force_removal
+
+- name: "Apache | Debian | Remove Site '{{ name }}' | Removing site"
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
+  when: >
+    force_removal or
+    removal_prompt.user_input == 'yes'
   loop:
     - "/etc/apache2/sites-enabled/site_{{ name }}.conf"
     - "/etc/apache2/sites-available/site_{{ name }}.conf"
@@ -14,3 +22,12 @@
     - "{{ APACHE_CONFIG.ssl.path }}/{{ name }}.crt"
     - "{{ APACHE_CONFIG.ssl.path }}/{{ name }}.chain.crt"
     - "{{ APACHE_CONFIG.ssl.path }}/{{ name }}.fullchain.crt"
+
+- name: "Apache | Debian | Remove Site '{{ name }}' | Removing document root"
+  ansible.builtin.file:
+    path: "{{ site.serve.path }}"
+    state: absent
+  when: >
+    site.mode == 'serve' and
+    (force_removal or
+    removal_prompt.user_input == 'yes')

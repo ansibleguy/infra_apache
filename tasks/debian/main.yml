@@ -38,11 +38,10 @@
 - name: Apache | Debian | Disabling apache modules
   community.general.apache2_module:
     state: absent
-    name: "{{ item }}"
+    name: "{{ APACHE_CONFIG.modules.absent }}"
     force: True
     ignore_configcheck: True
   register: apache_mods_disable_raw
-  loop: "{{ APACHE_CONFIG.modules.absent }}"
   tags: [base]
 
 # todo: configure module settings

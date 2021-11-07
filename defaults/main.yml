@@ -186,3 +186,4 @@ apache_config_graylist: [
     'SSLEngine', 'SSLCertificateKeyFile', 'SSLCertificateFile', 'SSLCertificateChainFile', 'ErrorLog', 'CustomLog', 'ServerAdmin',
     'ServerAlias', 'ServerName', 'Redirect'
 ]
+force_removal: false

@@ -79,7 +79,7 @@ apache:
     mySuperCustom: 'headerContent'
 
   modules:
-    present: ['evasive']
+    present: ['evasive', 'ssl', 'headers', 'rewrite']
 
   guys_statics:
     mode: 'serve'
