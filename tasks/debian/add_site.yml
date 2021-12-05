@@ -13,12 +13,9 @@
   tags: [sites, certs]
 
 - name: "Apache | Debian | Site '{{ name }}' | Configuring listen-ports"
-  ansible.builtin.blockinfile:
+  ansible.builtin.lineinfile:
     path: '/etc/apache2/ports.conf'
-    block: |
-      Listen {{ port }}
-    marker: "# {mark} ANSIBLE MANAGED BLOCK - port '{{ port }}'"
-    insertafter: '# /etc/apache2/sites-enabled/000-default.conf'
+    line: "Listen {{ port }}"
   ignore_errors: true
   when:
     - port != 80
