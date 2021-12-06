@@ -15,8 +15,8 @@ default_apache:
     syslog_host:
     syslog_port: 514
     syslog_max_size: '4KiB'  # see: https://manpages.ubuntu.com/manpages/xenial/man1/logger.1.html
-    prefix_ue: 'apache_plain_'
-    prefix_ssl: 'apache_ssl_'
+    prefix_ue: 'apache_'  # log prefix for http site
+    prefix_ssl: 'apache_'  # log prefix for ssl site
 
   user: 'www-data'
   group: 'www-data'
