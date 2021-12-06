@@ -66,7 +66,7 @@
 {% if APACHE_CONFIG.config | length > 0 %}
   # global config
 {% for setting, value in APACHE_CONFIG.config.items() %}
-{%   if setting not in apache_config_graylist %}
+{%   if setting not in apache_config_graylist and value not in NONE_VALUES %}
   {{ setting }} {{ value }}
 {%   endif %}
 {% endfor %}
@@ -75,7 +75,7 @@
 {% if site.config | length > 0 %}
   # site-specific config
 {% for setting, value in site.config.items() %}
-{%   if setting not in apache_config_graylist %}
+{%   if setting not in apache_config_graylist and value not in NONE_VALUES %}
   {{ setting }} {{ value }}
 {%   endif %}
 {% endfor %}
@@ -85,10 +85,12 @@
   # global headers
   <IfModule mod_headers.c>
 {%   for header, value in APACHE_CONFIG.headers.items() %}
-{%     if 'Header' in header %}
+{%     if header not in site.headers and value not in NONE_VALUES %}
+{%       if 'Header' in header %}
     {{ header }} {{ value }}
-{%     else %}
+{%       else %}
     Header set {{ header }} {{ value }}
+{%       endif %}
 {%     endif %}
 {%   endfor %}
 
@@ -99,10 +101,12 @@
   # site-specific headers
   <IfModule mod_headers.c>
 {%   for header, value in site.headers.items() %}
-{%     if 'Header' in header %}
+{%     if value not in NONE_VALUES %}
+{%       if 'Header' in header %}
     {{ header }} {{ value }}
-{%     else %}
+{%       else %}
     Header set {{ header }} {{ value }}
+{%       endif %}
 {%     endif %}
 {%   endfor %}
 

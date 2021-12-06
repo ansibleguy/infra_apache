@@ -187,3 +187,4 @@ apache_config_graylist: [
     'ServerAlias', 'ServerName', 'Redirect'
 ]
 force_removal: false
+NONE_VALUES: [none, '', ' ']
