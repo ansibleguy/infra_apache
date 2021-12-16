@@ -8,6 +8,12 @@ configure_security: true  # https://www.digitalocean.com/community/tutorials/how
 default_apache:
   sites: {}
 
+  status_page:
+    state: 'present'
+    bind: '127.0.0.1'
+    port: 80
+    path: 'server-status'
+
   log:
     path: '/var/log/apache2'
     per_site: true

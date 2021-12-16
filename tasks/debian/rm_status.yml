@@ -1,0 +1,9 @@
+---
+
+- name: Apache | Debian | Removing status page
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - '/etc/apache2/sites-enabled/status.conf'
+    - '/etc/apache2/sites-available/status.conf'

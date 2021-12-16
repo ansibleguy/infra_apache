@@ -106,6 +106,11 @@
     - 'default-ssl.conf'
   tags: [config, base]
 
+- name: Apache | Debian | Removing status page
+  ansible.builtin.include_tasks: rm_status.yml
+  when: APACHE_CONFIG.status_page.state != 'present'
+  tags: [config, sites, base]
+
 - name: Apache | Debian | Removing site
   ansible.builtin.include_tasks: rm_site.yml
   when: site.state != 'present'
@@ -124,6 +129,11 @@
     name: 'apache2.service'
     state: reloaded
   tags: [base, config, sites, certs]
+
+- name: Apache | Debian | Adding status page
+  ansible.builtin.include_tasks: add_status.yml
+  when: APACHE_CONFIG.status_page.state == 'present'
+  tags: [config, sites, base]
 
 - name: Apache | Debian | Adding site
   ansible.builtin.include_tasks: add_site.yml

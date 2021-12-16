@@ -1,0 +1,25 @@
+# {{ ansible_managed }}
+# ansibleguy.infra_apache
+
+<VirtualHost {{ APACHE_CONFIG.status_page.bind }}:{{ APACHE_CONFIG.status_page.port }}>
+  # log config
+{% if APACHE_CONFIG.log.syslog and APACHE_CONFIG.log.syslog_host is not none %}
+  ErrorLog "| /usr/bin/logger -n {{ APACHE_CONFIG.log.syslog_host }} -P {{ APACHE_CONFIG.log.syslog_port }} -p local1.error -t {{ APACHE_CONFIG.log.prefix_ue }}apache2_status"
+  CustomLog "| /usr/bin/logger -n {{ APACHE_CONFIG.log.syslog_host }} -P {{ APACHE_CONFIG.log.syslog_port }} -p local1.info -t {{ APACHE_CONFIG.log.prefix_ue }}apache2_status" combined
+{% elif APACHE_CONFIG.log.syslog %}
+  ErrorLog "| /usr/bin/logger -p local1.error -t {{ APACHE_CONFIG.log.prefix_ue }}apache2_status"
+  CustomLog "| /usr/bin/logger -p local1.info -t {{ APACHE_CONFIG.log.prefix_ue }}apache2_status" combined
+{% elif APACHE_CONFIG.log.per_site %}
+  ErrorLog {{ APACHE_CONFIG.log.path }}/apache2_status_error.log
+  CustomLog {{ APACHE_CONFIG.log.path }}/apache2_status_access.log combined
+{% else %}
+  ErrorLog {{ APACHE_CONFIG.log.path }}/error.log
+  CustomLog {{ APACHE_CONFIG.log.path }}/access.log combined
+{% endif %}
+
+  # status page handling
+  <Location "/{{ APACHE_CONFIG.status_page.path }}">
+    SetHandler server-status
+  </Location>
+
+</VirtualHost>
