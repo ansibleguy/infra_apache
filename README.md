@@ -1,5 +1,5 @@
 # Apache2 Role
-Ansible role to install apache2 sites on the target server.
+Ansible Role to deploy one or multiple Apache2 sites on a linux server.
 
 **Tested:**
 * Debian 11
