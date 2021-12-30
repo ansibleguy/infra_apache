@@ -25,6 +25,7 @@ Ansible Role to deploy one or multiple Apache2 sites on a linux server.
     * Logging to syslog
     * Using a Self-Signed certificate
     * Modules: +ssl, headers, rewrite; -autoindex
+    * HTTP2 enabled with fallback to HTTP1.1
 
 
   * **SSL modes** (_for more info see: [CERT ROLE](https://github.com/ansibleguy/infra_certs)_)
