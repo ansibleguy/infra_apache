@@ -1,34 +1,41 @@
 # {{ ansible_managed }}
 # ansibleguy.infra_apache
 
+{% if site.plain_site %}
+# http listener
 <VirtualHost *:{{ site.port_plain }}>
   ServerName {{ site.domain }}
 
-{% if site.aliases | length > 0 %}
+{%   if site.aliases | length > 0 %}
   ServerAlias {% for name in site.aliases %} {{ name }} {% endfor %}{% if site.ip is not none %} {{ site.ip }}{% endif %}
-{% endif %}
+{%   endif %}
   ServerAdmin {{ site.admin }}
 
   # log config
-{% if APACHE_CONFIG.log.syslog and APACHE_CONFIG.log.syslog_host is not none %}
+{%   if APACHE_CONFIG.log.syslog and APACHE_CONFIG.log.syslog_host is not none %}
   ErrorLog "| /usr/bin/logger -n {{ APACHE_CONFIG.log.syslog_host }} -P {{ APACHE_CONFIG.log.syslog_port }} -p local1.error -t {{ APACHE_CONFIG.log.prefix_ue }}{{ name }}"
   CustomLog "| /usr/bin/logger -n {{ APACHE_CONFIG.log.syslog_host }} -P {{ APACHE_CONFIG.log.syslog_port }} -p local1.info -t {{ APACHE_CONFIG.log.prefix_ue }}{{ name }}" combined
-{% elif APACHE_CONFIG.log.syslog %}
+{%   elif APACHE_CONFIG.log.syslog %}
   ErrorLog "| /usr/bin/logger -p local1.error -t {{ APACHE_CONFIG.log.prefix_ue }}{{ name }}"
   CustomLog "| /usr/bin/logger -p local1.info -t {{ APACHE_CONFIG.log.prefix_ue }}{{ name }}" combined
-{% elif APACHE_CONFIG.log.per_site %}
+{%   elif APACHE_CONFIG.log.per_site %}
   ErrorLog {{ APACHE_CONFIG.log.path }}/{{ name }}_error.log
   CustomLog {{ APACHE_CONFIG.log.path }}/{{ name }}_access.log combined
-{% else %}
+{%   else %}
   ErrorLog {{ APACHE_CONFIG.log.path }}/error.log
   CustomLog {{ APACHE_CONFIG.log.path }}/access.log combined
-{% endif %}
+{%   endif %}
+
+  # http versions
+  Protocols {% if 2 in site.http_versions %}h2c {% endif %}{% if 1 in site.http_versions or 2 not in site.http_versions %}http/1.1{% endif %}
 
   # redirect all to secure connection
   Redirect permanent / https://{{ site.domain }}
 
 </VirtualHost>
+{% endif %}
 
+# https listener
 <VirtualHost *:{{ site.port_ssl }}>
   ServerName {{ site.domain }}
 
@@ -52,6 +59,9 @@
   ErrorLog {{ APACHE_CONFIG.log.path }}/error.log
   CustomLog {{ APACHE_CONFIG.log.path }}/access.log combined
 {% endif %}
+
+  # http versions
+  Protocols {% if 2 in site.http_versions %}h2 {% endif %}{% if 1 in site.http_versions or 2 not in site.http_versions %}http/1.1{% endif %}
 
   # ssl config
   <IfModule mod_ssl.c>

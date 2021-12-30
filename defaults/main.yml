@@ -80,7 +80,7 @@ default_apache:
       pwd:  # it's highly recommended setting a passphrase!
 
   modules:
-    present: ['ssl', 'headers', 'rewrite']
+    present: ['ssl', 'headers', 'rewrite', 'http2']
     absent: ['autoindex']
 
   letsencrypt:
@@ -106,6 +106,8 @@ default_site_config:
   domain:
   aliases: []
   ip:
+  http_versions: [2, 1]
+  plain_site: true  # if http site (only used for redirect to https) should be created
 
   config: {}  # site-specific setting-value pairs
   config_additions: []  # lines that will 1-to-1 be appended to the site-config
