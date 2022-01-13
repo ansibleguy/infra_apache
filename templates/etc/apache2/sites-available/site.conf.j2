@@ -30,7 +30,12 @@
   Protocols {% if 2 in site.http_versions %}h2c {% endif %}{% if 1 in site.http_versions or 2 not in site.http_versions %}http/1.1{% endif %}
 
   # redirect all to secure connection
-  Redirect permanent / https://{{ site.domain }}
+  RewriteEngine On
+{% if site.plain_redirect == 'preserve_domain' %}
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI}
+{% else %}
+  RewriteRule ^ https://{{ site.domain }}%{REQUEST_URI}
+{% endif %}
 
 </VirtualHost>
 {% endif %}
