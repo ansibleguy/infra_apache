@@ -12,7 +12,7 @@
   when: "site.ssl.mode in ['selfsigned', 'existing', 'ca']"
   tags: [sites, certs]
 
-- name: "Apache | Debian | Site '{{ name }}' | Configuring listen-ports"
+- name: "Apache | Debian | Site '{{ name }}' | Configuring ipv4 listen-ports"
   ansible.builtin.lineinfile:
     path: '/etc/apache2/ports.conf'
     line: "Listen {{ port }}"
@@ -24,9 +24,22 @@
     - port != '443'
   loop_control:
     loop_var: port
-  with_items:
+  loop:
     - "{{ site.port_plain }}"
     - "{{ site.port_ssl }}"
+  tags: [config, sites]
+
+- name: "Apache | Debian | Site '{{ name }}' | Configuring ipv6 listen-ports"
+  ansible.builtin.lineinfile:
+    path: '/etc/apache2/ports.conf'
+    line: "Listen [::]:{{ port }}"
+  ignore_errors: true
+  loop_control:
+    loop_var: port
+  loop:
+    - "{{ site.port_plain }}"
+    - "{{ site.port_ssl }}"
+  when: APACHE_CONFIG.ipv6
   tags: [config, sites]
 
 - name: "Apache | Debian | Site '{{ name }}' | Create root directory"

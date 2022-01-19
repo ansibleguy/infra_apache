@@ -16,16 +16,17 @@ Ansible Role to deploy one or multiple Apache2 sites on a linux server.
   * Two **config-modes**:
     * serve (_default_)
     * redirect
+  * Support for specific configurations using the 'config' and 'config_additions' parameters
 
 
   * **Default config**:
     * Disabled: <TLS1.2, unsecure ciphers, autoindex, servertokens/-signature, ServerSideIncludes, CGI
     * Security headers: HSTS, X-Frame, Referrer-Policy, Content-Type nosniff, X-Domain-Policy, XXS-Protection
     * Limits to prevent DDoS
-    * Logging to syslog
     * Using a Self-Signed certificate
-    * Modules: +ssl, headers, rewrite; -autoindex
+    * Modules: +ssl, +http2, headers, rewrite; -autoindex
     * HTTP2 enabled with fallback to HTTP1.1
+    * IPv6 support disabled (*at least one ipv6 address MUST EXIST*)
 
 
   * **SSL modes** (_for more info see: [CERT ROLE](https://github.com/ansibleguy/infra_certs)_)
@@ -37,10 +38,13 @@ Ansible Role to deploy one or multiple Apache2 sites on a linux server.
 
   * **Default opt-ins**:
     * restricting methods to POST/GET/HEAD
+    * status-page listener on localhost
+    * Logging to syslog
+    * http2
 
 
   * **Default opt-outs**:
-    * Include the config file 'site_{{ site_name }}_app.conf' for advanced usage
+    * Include the config file 'sites-available/site_{{ site_name }}_app.conf' for advanced usage
 
 
 Options to provide module config will be added in the future!<br>
@@ -57,8 +61,8 @@ Also some basic mods will get a pre-config added. (_prefork, evasive_)
 * **Note:** This role expects that the site's unencrypted 'server' will only redirect to its encrypted connection.
 
 
-* **Note:** If you want all domain-names to get 'caught' by a site/server you need to add an underline '*' as alias or domain!<br>
-This will also be done automatically if no domain is supplied.
+* **Note:** If you want all domain-names to get 'caught' by a site/server you need to add a star/wildcard '*' as alias!<br>
+BUT: You still have to provide a main domain!
 
 
 * **Warning:** Not every setting/variable you provide will be checked for validity. Bad config might break the role!
@@ -90,13 +94,15 @@ apache:
     mode: 'serve'
     domain: 'static.guy.net'
     serve:
-      path: '/var/www/static'
+      path: '/var/www/site_guys_statics'
 
     ssl:
       mode: 'ca'  # create minimal ca with signed server-certificate
 
-    config:
+    config:  # add settings as key-value pairs
       KeepAliveTimeout: 10
+    config_additions:   # add a list of custom lines of config
+      - 'location = / { return 301 /kitty.jpg; }'
 
   git_stuff:
     mode: 'redirect'
@@ -110,6 +116,9 @@ apache:
 
     letsencrypt:
       email: 'apache@template.ansibleguy.net'
+
+    security:
+      restrict_methods: false
 ```
 
 ### Execution

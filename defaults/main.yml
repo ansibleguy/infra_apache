@@ -8,6 +8,8 @@ configure_security: true  # https://www.digitalocean.com/community/tutorials/how
 default_apache:
   sites: {}
 
+  ipv6: false  # IMPORTANT: at least one ipv6 address MUST BE defined on your system! else apache2 will fail to start
+
   status_page:
     state: 'present'
     bind: '127.0.0.1'
@@ -103,6 +105,7 @@ default_site_config:
   admin: 'apache@template.ansibleguy.net'
   port_plain: 80
   port_ssl: 443
+  listen: '*'
   domain:
   aliases: []
   ip:
@@ -122,7 +125,7 @@ default_site_config:
 
   redirect:
     target: 'https://github.com/ansibleguy'
-    request_uri: true
+    request_uri: false
 
   serve:
     path: '/var/www/html'

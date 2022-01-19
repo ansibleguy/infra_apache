@@ -101,7 +101,7 @@
   ansible.builtin.file:
     state: absent
     dest: "/etc/apache2/sites-enabled/{{ item }}"
-  with_items:
+  loop:
     - '000-default.conf'
     - 'default-ssl.conf'
   tags: [config, base]

@@ -3,7 +3,7 @@
 
 {% if site.plain_site %}
 # http listener
-<VirtualHost *:{{ site.port_plain }}>
+<VirtualHost {{ site.listen }}:{{ site.port_plain }}>
   ServerName {{ site.domain }}
 
 {%   if site.aliases | length > 0 %}
@@ -41,7 +41,7 @@
 {% endif %}
 
 # https listener
-<VirtualHost *:{{ site.port_ssl }}>
+<VirtualHost {{ site.listen }}:{{ site.port_ssl }}>
   ServerName {{ site.domain }}
 
 {% if site.aliases | length > 0 %}
