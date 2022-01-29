@@ -1,3 +1,5 @@
+[![Apache2](https://www.apache.org/logos/res/httpd/default.png)](https://httpd.apache.org/)
+
 # Apache2 Role
 Ansible Role to deploy one or multiple Apache2 sites on a linux server.
 
