@@ -39,8 +39,8 @@
   community.general.apache2_module:
     state: absent
     name: "{{ APACHE_CONFIG.modules.absent }}"
-    force: True
-    ignore_configcheck: True
+    force: true
+    ignore_configcheck: true
   register: apache_mods_disable_raw
   tags: [base]
 
