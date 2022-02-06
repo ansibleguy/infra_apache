@@ -98,6 +98,9 @@ default_apache:
 
 APACHE_CONFIG: "{{ default_apache | combine(apache, recursive=true) }}"
 
+APACHE_HC:
+  packages: ['systemd', 'apache2']
+
 # site-specific config
 default_site_config:
   mode: 'serve'

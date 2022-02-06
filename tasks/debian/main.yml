@@ -2,7 +2,7 @@
 
 - name: Apache | Debian | Install apache
   ansible.builtin.apt:
-    name: ['apache2']
+    name: "{{ APACHE_HC.packages }}"
     state: present
     update_cache: true
   tags: [base]
