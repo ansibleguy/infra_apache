@@ -137,7 +137,7 @@
   </IfModule>
   <Directory />
     <LimitExcept {% for method in APACHE_CONFIG.security.restricted_methods %}{{ method }} {% endfor %}>
-      deny from all
+      Require all denied
     </LimitExcept>
   </Directory>
 {% endif %}
