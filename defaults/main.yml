@@ -1,9 +1,5 @@
 ---
 
-# main switches
-configure_anti_ddos: true  # mod_evasive
-configure_security: true  # https://www.digitalocean.com/community/tutorials/how-to-set-up-mod_security-with-apache-on-debian-ubuntu
-
 # default config => is overwritten by provided config
 default_apache:
   sites: {}
@@ -165,37 +161,6 @@ default_site_config:
   letsencrypt:
     key_size:
     email:
-
-default_modules:
-  # <IfModule ${MOD}>
-  # </IfModule>
-  prefork:  # see: https://httpd.apache.org/docs/2.4/mod/mpm_common.html
-    ifname: 'prefork.c'
-    settings:
-      StartServers: 5
-      MinSpareServers: 5
-      MaxSpareServers: 10
-      MaxRequestWorkers: 256
-      MaxConnectionsPerChild: 0
-  mod_evasive:
-    ifname: 'mod_evasive20.c'
-    settings:
-      DOSHashTableSize: 4096
-      DOSPageCount: 25
-      DOSSiteCount: 100
-      DOSPageInterval: 1
-      DOSSiteInterval: 1
-      DOSBlockingPeriod: 60
-      DOSLogDir: "{{ CONFIG.log.path }}"
-      # DOSSystemCommand:
-      # DOSEmailNotify: mail@yourdomain.com
-      DOSWhitelist: [
-        '127.0.0.*', '192.168.*.*', '10.*.*.*', '172.16.*.*', '172.17.*.*', '172.18.*.*', '172.19.*.*',
-        '172.20.*.*', '172.21.*.*', '172.22.*.*', '172.23.*.*', '172.24.*.*', '172.25.*.*', '172.26.*.*',
-        '172.27.*.*', '172.28.*.*', '172.29.*.*', '172.30.*.*', '172.31.*.*', '172.32.*.*',
-      ]
-
-APACHE_MODULES: "{{ default_modules | combine(modules, recursive=true) }}"
 
 apache_config_graylist: [
   'SSLEngine', 'SSLCertificateKeyFile', 'SSLCertificateFile', 'SSLCertificateChainFile', 'ErrorLog', 'CustomLog', 'ServerAdmin',
