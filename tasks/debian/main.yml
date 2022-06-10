@@ -26,22 +26,19 @@
     - {reg: '^export APACHE_RUN_GROUP=', line: "export APACHE_RUN_GROUP={{ APACHE_CONFIG.group }}"}
   tags: [base, config]
 
+# NOTE: a2enmod/a2dismod command saves time in comparison to the community 'apache2_module' module
 - name: Apache | Debian | Enabling apache modules
-  community.general.apache2_module:
-    state: present
-    name: "{{ item }}"
-  when: item not in APACHE_CONFIG.modules.absent
+  ansible.builtin.command: "a2enmod {{ APACHE_CONFIG.modules.present | enmod_list(APACHE_CONFIG.modules.absent) }}"
   register: apache_mods_enable_raw
-  loop: "{{ APACHE_CONFIG.modules.present }}"
+  changed_when: "'restart apache2' in apache_mods_enable_raw.stdout"
+  when: APACHE_CONFIG.modules.present | ensure_list | length > 0
   tags: [base]
 
 - name: Apache | Debian | Disabling apache modules
-  community.general.apache2_module:
-    state: absent
-    name: "{{ APACHE_CONFIG.modules.absent }}"
-    force: true
-    ignore_configcheck: true
+  ansible.builtin.command: "a2dismod -f {{ APACHE_CONFIG.modules.absent | mod_list }}"
   register: apache_mods_disable_raw
+  changed_when: "'restart apache2' in apache_mods_disable_raw.stdout"
+  when: APACHE_CONFIG.modules.absent | ensure_list | length > 0
   tags: [base]
 
 # todo: configure module settings
@@ -128,6 +125,7 @@
   ansible.builtin.systemd:
     name: 'apache2.service'
     state: reloaded
+  changed_when: false
   tags: [base, config, sites, certs]
 
 - name: Apache | Debian | Adding status page
@@ -160,4 +158,5 @@
     name: 'apache2.service'
     enabled: yes
     state: reloaded
+  changed_when: false
   tags: [base, config, sites, certs]

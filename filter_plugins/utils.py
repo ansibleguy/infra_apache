@@ -8,6 +8,9 @@ class FilterModule(object):
             "safe_key": self.safe_key,
             "all_true": self.all_true,
             "prepare_letsencrypt": self.prepare_letsencrypt,
+            "ensure_list": self.ensure_list,
+            "enmod_list": self.enmod_list,
+            "mod_list": self.mod_list,
         }
 
     @staticmethod
@@ -30,3 +33,21 @@ class FilterModule(object):
                 'state': site['state'],
             }
         }
+
+    @classmethod
+    def enmod_list(cls, present: list, absent: list) -> str:
+        absent_list = cls.ensure_list(absent)
+        return ' '.join([mod for mod in cls.ensure_list(present) if mod not in absent_list])
+
+    @classmethod
+    def mod_list(cls, mods: (str, list)) -> str:
+        return ' '.join(cls.ensure_list(mods))
+
+    @staticmethod
+    def ensure_list(data: (str, list)) -> list:
+        # if user supplied a string instead of a list => convert it to match our expectations
+        if type(data) == list:
+            return data
+
+        else:
+            return [data]
