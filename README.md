@@ -138,3 +138,8 @@ There are also some useful **tags** available:
 * sites
 * config => configuration (base and instances)
 * certs
+
+To debug errors - you can set the 'debug' variable at runtime:
+```bash
+ansible-playbook -K -D -i inventory/hosts.yml playbook.yml -e debug=yes
+```

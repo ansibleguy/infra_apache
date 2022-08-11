@@ -1,0 +1,32 @@
+
+{% if APACHE_CONFIG.config | length > 0 %}
+  # global config
+{% for setting, value in APACHE_CONFIG.config.items() %}
+{%   if setting not in APACHE_HC.config_graylist and value not in NONE_VALUES %}
+  {{ setting }} {{ value }}
+{%   endif %}
+{% endfor %}
+{% endif %}
+
+{% if site.config | length > 0 %}
+  # site-specific config
+{% for setting, value in site.config.items() %}
+{%   if setting not in APACHE_HC.config_graylist and value not in NONE_VALUES %}
+  {{ setting }} {{ value }}
+{%   endif %}
+{% endfor %}
+{% endif %}
+
+  # security config
+{% if site.security.restrict_methods %}
+  <IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_METHOD} ^(?!{% for method in APACHE_CONFIG.security.restricted_methods %}{{ method }}{% if not loop.last %}|{% endif %}{% endfor %})
+    RewriteRule .* - [F]
+  </IfModule>
+  <Directory />
+    <LimitExcept {% for method in APACHE_CONFIG.security.restricted_methods %}{{ method }} {% endfor %}>
+      Require all denied
+    </LimitExcept>
+  </Directory>
+{% endif %}

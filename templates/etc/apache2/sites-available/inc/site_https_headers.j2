@@ -1,0 +1,32 @@
+
+{% if APACHE_CONFIG.headers | length > 0 %}
+  # global headers
+  <IfModule mod_headers.c>
+{%   for header, value in APACHE_CONFIG.headers.items() %}
+{%     if header not in site.headers and value not in NONE_VALUES %}
+{%       if 'Header' in header %}
+    {{ header }} {{ value }}
+{%       else %}
+    Header set {{ header }} {{ value }}
+{%       endif %}
+{%     endif %}
+{%   endfor %}
+
+  </IfModule>
+{% endif %}
+
+{% if site.headers | length > 0 %}
+  # site-specific headers
+  <IfModule mod_headers.c>
+{%   for header, value in site.headers.items() %}
+{%     if value not in NONE_VALUES %}
+{%       if 'Header' in header %}
+    {{ header }} {{ value }}
+{%       else %}
+    Header set {{ header }} {{ value }}
+{%       endif %}
+{%     endif %}
+{%   endfor %}
+
+  </IfModule>
+{% endif %}

@@ -1,0 +1,66 @@
+---
+
+# site-specific config
+defaults_site:
+  mode: 'serve'
+  state: 'present'
+  admin: 'apache@template.ansibleguy.net'
+  port_plain: 80
+  port_ssl: 443
+  listen: '*'
+  domain:
+  aliases: []
+  ip:
+  http_versions: [2, 1]
+  plain_site: true  # if http site (only used for redirect to https) should be created
+  plain_redirect: 'preserve_domain'  # keep hostname from plain request => any other value will set the redirect to the main-domain
+
+  config: {}  # site-specific setting-value pairs
+  config_additions: []  # lines that will 1-to-1 be appended to the site-config
+  app_include: false
+  headers: {}
+
+  security:  # https://www.nixpal.com/apache-httpd-hardening/
+    disable_root_index: true
+    disable_ssi_cgi: true
+    restrict_methods: true
+
+  redirect:
+    target: 'https://github.com/ansibleguy'
+    request_uri: false
+
+  serve:
+    path: '/var/www/html'
+
+  ssl:  # see: https://github.com/ansibleguy/infra_certs
+    mode: 'ca'  # existing/selfsigned/ca/letsencrypt
+    # existing:
+    #   We expect the certs to be placed in the role's 'files' directory named like the site
+    #   Example: files/certs/ansibleguy.key and files/certs/ansibleguy.crt
+    # letsencrypt:
+    #   Host needs to have a valid public dns record pointed at it
+    #   Needs to be publicly reachable over port 80/tcp
+    cert:
+      name:
+      cn: 'Apache Certificate'
+      org: 'AnsibleGuy'
+      ou:
+      country:
+      state:
+      locality:
+      email:
+      crl_distribution: []
+    ca:
+      file:  # can be used if you want to use an existing ca
+      cn:
+      org:
+      ou:
+      country:
+      state:
+      locality:
+      email:
+      pwd:  # it's highly recommended setting a passphrase!
+
+  letsencrypt:
+    key_size:
+    email:

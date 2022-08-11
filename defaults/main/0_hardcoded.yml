@@ -1,0 +1,11 @@
+---
+
+APACHE_HC:
+  packages: ['systemd', 'apache2']
+  config_graylist: [
+    'SSLEngine', 'SSLCertificateKeyFile', 'SSLCertificateFile', 'SSLCertificateChainFile', 'ErrorLog', 'CustomLog', 'ServerAdmin',
+    'ServerAlias', 'ServerName', 'Redirect'
+  ]
+
+force_removal: false
+NONE_VALUES: [none, '', ' ']

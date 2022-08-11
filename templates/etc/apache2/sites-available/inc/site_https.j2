@@ -1,0 +1,60 @@
+
+# https listener
+<VirtualHost {{ site.listen }}:{{ site.port_ssl }}>
+  ServerName {{ site.domain }}
+
+{% if site.aliases | length > 0 %}
+  ServerAlias {% for alias in site.aliases %} {{ alias }} {% endfor %}{% if site.ip is not none %} {{ site.ip }}{% endif %}
+{% endif %}
+
+  ServerAdmin {{ site.admin }}
+
+  # http versions
+  Protocols {% if 2 in site.http_versions %}h2 {% endif %}{% if 1 in site.http_versions or 2 not in site.http_versions %}http/1.1{% endif %}
+
+{% include "inc/site_https_log.j2" %}
+{% include "inc/site_https_ssl.j2" %}
+{% include "inc/site_https_config.j2" %}
+{% include "inc/site_https_headers.j2" %}
+
+{% if site.mode == 'redirect' %}
+  # redirect-mode config
+  Redirect permanent / {{ site.redirect.target }}
+{%   if site.redirect.request_uri %}
+  RedirectMatch permanent ^/(.*)$ {{ site.redirect.target }}/$1
+{%   else %}
+  RedirectMatch permanent ^/(.*)$ {{ site.redirect.target }}
+{%   endif %}
+
+{% elif site.mode == 'serve' %}
+  # serve-mode config
+  DocumentRoot {{ site.serve.path }}
+
+  # mode-specific security config
+  <Directory {{ site.serve.path }}>
+{%   if site.security.disable_ssi_cgi %}
+    Options -FollowSymLinks -ExecCGI -Includes
+    AllowOverride None
+{%   endif %}
+{%   if site.security.disable_root_index %}
+    Options -Indexes
+{%   endif %}
+    Require all granted
+  </Directory>
+
+
+{% endif %}
+
+{% if site.config_additions | length > 0 %}
+  # additional lines
+{% endif %}
+{% for line in site.config_additions %}
+  {{ line }}
+{% endfor %}
+
+{% if site.app_include %}
+  # additional application config include
+  IncludeOptional /etc/apache2/sites-available/site_{{ name }}_app.conf
+{% endif %}
+
+</VirtualHost>

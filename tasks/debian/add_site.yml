@@ -1,5 +1,21 @@
 ---
 
+# todo: option for security.txt
+
+- name: "Apache | Debian | Site '{{ name }}' | Showing debug info - user provided config"
+  ansible.builtin.debug:
+    var: site_item.value
+  when:
+    - debug is defined
+    - debug
+
+- name: "Apache | Debian | Site '{{ name }}' | Showing debug info - running config"
+  ansible.builtin.debug:
+    var: site
+  when:
+    - debug is defined
+    - debug
+
 - name: "Apache | Debian | Site '{{ name }}' | Checking config"
   ansible.builtin.fail:
     msg: "The required site-configuration was not provided!

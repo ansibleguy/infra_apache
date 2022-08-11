@@ -1,5 +1,19 @@
 ---
 
+- name: Apache | Debian | Showing debug info - user provided config
+  ansible.builtin.debug:
+    var: apache
+  when:
+    - debug is defined
+    - debug
+
+- name: Apache | Debian | Showing debug info - running config
+  ansible.builtin.debug:
+    var: APACHE_CONFIG
+  when:
+    - debug is defined
+    - debug
+
 - name: Apache | Debian | Install apache
   ansible.builtin.apt:
     name: "{{ APACHE_HC.packages }}"
@@ -71,7 +85,7 @@
     name: ansibleguy.infra_certs
   when: site.ssl.mode == 'letsencrypt'
   vars:
-    site: "{{ default_site_config | combine(site_item.value, recursive=true) }}"
+    site: "{{ defaults_site | combine(site_item.value, recursive=true) }}"
     name: "{{ site_item.key | safe_key }}"
     certs:
       mode: 'le_certbot'
@@ -112,7 +126,7 @@
   ansible.builtin.include_tasks: rm_site.yml
   when: site.state != 'present'
   vars:
-    site: "{{ default_site_config | combine(site_item.value, recursive=true) }}"
+    site: "{{ defaults_site | combine(site_item.value, recursive=true) }}"
     name: "{{ site_item.key | safe_key }}"
     path: "{{ site.serve.path }}"
   loop_control:
@@ -137,7 +151,7 @@
   ansible.builtin.include_tasks: add_site.yml
   when: site.state == 'present'
   vars:
-    site: "{{ default_site_config | combine(site_item.value, recursive=true) }}"
+    site: "{{ defaults_site | combine(site_item.value, recursive=true) }}"
     name: "{{ site_item.key | safe_key }}"
     path: "{{ site.serve.path }}"
   loop_control:

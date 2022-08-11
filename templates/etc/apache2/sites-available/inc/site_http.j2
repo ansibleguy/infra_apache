@@ -1,0 +1,30 @@
+
+{% if site.plain_site %}
+# http listener
+<VirtualHost {{ site.listen }}:{{ site.port_plain }}>
+  ServerName {{ site.domain }}
+
+{%   if site.aliases | length > 0 %}
+  ServerAlias {% for name in site.aliases %} {{ name }} {% endfor %}{% if site.ip is not none %} {{ site.ip }}{% endif %}
+{%   endif %}
+  ServerAdmin {{ site.admin }}
+
+  # http versions
+  Protocols {% if 2 in site.http_versions %}h2c {% endif %}{% if 1 in site.http_versions or 2 not in site.http_versions %}http/1.1{% endif %}
+
+{% include "inc/site_http_log.j2" %}
+
+  RewriteEngine On
+{%   if site.ssl.mode != 'letsencrypt' %}
+  # welcome letsencrypt bots
+  RewriteCond %{REQUEST_URI} !^\/\.well-known\/acme-challenge\/.*$
+{%   endif %}
+  # redirect all to secure connection
+{%   if site.plain_redirect == 'preserve_domain' %}
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI}
+{%   else %}
+  RewriteRule ^ https://{{ site.domain }}%{REQUEST_URI}
+{%   endif %}
+
+</VirtualHost>
+{% endif %}
