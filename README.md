@@ -3,6 +3,9 @@
 # Ansible Role - Apache2 Webserver
 Ansible Role to deploy one or multiple Apache2 sites on a linux server.
 
+[![Molecule Test Status](https://badges.ansibleguy.net/infra_apache.molecule.svg)](https://molecule.readthedocs.io/en/latest/)
+[![YamlLint Test Status](https://badges.ansibleguy.net/infra_apache.yamllint.svg)](https://yamllint.readthedocs.io/en/stable/)
+[![Ansible-Lint Test Status](https://badges.ansibleguy.net/infra_apache.ansiblelint.svg)](https://ansible-lint.readthedocs.io/en/latest/)
 [![Ansible Galaxy](https://img.shields.io/ansible/role/56803)](https://galaxy.ansible.com/ansibleguy/infra_apache)
 [![Ansible Galaxy Downloads](https://img.shields.io/badge/dynamic/json?color=blueviolet&label=Galaxy%20Downloads&query=%24.download_count&url=https%3A%2F%2Fgalaxy.ansible.com%2Fapi%2Fv1%2Froles%2F56803%2F%3Fformat%3Djson)](https://galaxy.ansible.com/ansibleguy/infra_apache)
 
@@ -59,7 +62,7 @@ Also some basic mods will get a pre-config added. (_prefork, evasive_)
 
 * **Note:** Most of the role's functionality can be opted in or out.
 
-  For all available options - see the default-config located in the main defaults-file!
+  For all available options - see the default-config located in the main/site defaults-file!
 
 
 * **Note:** this role currently only supports debian-based systems
