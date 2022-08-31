@@ -81,6 +81,10 @@ BUT: You still have to provide a main domain!
 * **Info:** To disable default settings and headers => just set their value to: ''
 
 
+* **Info:** For LetsEncrypt renewal to work, you must allow outgoing connections to:
+
+  80/tcp, 443/tcp+udp to acme-v02.api.letsencrypt.org, staging-v02.api.letsencrypt.org (_debug mode_) and r3.o.lencr.org
+
 ## Requirements
 
 * Community collection and certificate role: ```ansible-galaxy install -r requirements.yml```
