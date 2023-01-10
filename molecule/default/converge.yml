@@ -2,7 +2,6 @@
 
 - name: Converge
   hosts: all
-  strategy: free  # speed-up; comment-out to gain clarity
   vars:
     apache:
       sites:
