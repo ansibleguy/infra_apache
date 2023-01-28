@@ -107,6 +107,9 @@
   with_dict: "{{ APACHE_CONFIG.sites }}"
   no_log: true
   tags: [certs, sites]
+  args:
+    apply:
+      tags: [certs, sites]
 
 - name: Apache | Debian | Disabling default apache sites
   ansible.builtin.file:
@@ -120,6 +123,9 @@
 - name: Apache | Debian | Removing status page
   ansible.builtin.include_tasks: rm_status.yml
   when: APACHE_CONFIG.status_page.state != 'present'
+  args:
+    apply:
+      tags: [config, sites, base]
   tags: [config, sites, base]
 
 - name: Apache | Debian | Removing site
@@ -134,6 +140,9 @@
   with_dict: "{{ APACHE_CONFIG.sites }}"
   no_log: true
   tags: [config, sites, certs]
+  args:
+    apply:
+      tags: [config, sites, certs]
 
 - name: Apache | Debian | Reloading apache
   ansible.builtin.systemd:
@@ -159,6 +168,9 @@
   with_dict: "{{ APACHE_CONFIG.sites }}"
   no_log: true
   tags: [config, sites, certs]
+  args:
+    apply:
+      tags: [config, sites, certs]
 
 - name: Apache | Debian | Starting/Enabling apache
   ansible.builtin.systemd:
