@@ -83,6 +83,6 @@
     src: "/etc/apache2/sites-available/site_{{ name }}.conf"
     dest: "/etc/apache2/sites-enabled/site_{{ name }}.conf"
     owner: 'root'
-    group: 'root'
-    mode: 0644
+    group: "{{ APACHE_CONFIG.group }}"
+    mode: 0640
   tags: [sites, config]
