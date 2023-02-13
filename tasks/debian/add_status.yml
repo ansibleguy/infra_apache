@@ -12,7 +12,7 @@
     src: 'templates/etc/apache2/sites-available/status.conf.j2'
     dest: '/etc/apache2/sites-available/status.conf'
     owner: 'root'
-    group: 'root'
+    group: "{{ APACHE_CONFIG.group }}"
     mode: 0644
   tags: [config, sites, base]
 
