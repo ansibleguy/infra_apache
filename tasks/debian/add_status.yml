@@ -13,7 +13,7 @@
     dest: '/etc/apache2/sites-available/status.conf'
     owner: 'root'
     group: "{{ APACHE_CONFIG.group }}"
-    mode: 0644
+    mode: 0640
   tags: [config, sites, base]
 
 - name: Apache | Debian | Status page | Enabling site
@@ -21,7 +21,4 @@
     state: link
     src: '/etc/apache2/sites-available/status.conf'
     dest: '/etc/apache2/sites-enabled/status.conf'
-    owner: 'root'
-    group: "{{ APACHE_CONFIG.group }}"
-    mode: 0640
   tags: [sites, base, config]

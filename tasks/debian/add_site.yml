@@ -82,7 +82,4 @@
     state: link
     src: "/etc/apache2/sites-available/site_{{ name }}.conf"
     dest: "/etc/apache2/sites-enabled/site_{{ name }}.conf"
-    owner: 'root'
-    group: "{{ APACHE_CONFIG.group }}"
-    mode: 0640
   tags: [sites, config]
