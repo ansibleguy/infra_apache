@@ -73,7 +73,7 @@
     src: 'templates/etc/apache2/sites-available/site.conf.j2'
     dest: "/etc/apache2/sites-available/site_{{ name }}.conf"
     owner: 'root'
-    group: 'root'
+    group: "{{ APACHE_CONFIG.group }}"
     mode: 0644
   tags: [config, sites]
 
