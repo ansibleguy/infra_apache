@@ -2,13 +2,13 @@
 
 # ports will be left configured since I found no clean way to manage them statefully
 
-- name: "Apache | Debian | Remove Site '{{ name }}' | Ask user"
+- name: "Apache | Remove Site '{{ name }}' | Ask user"
   ansible.builtin.pause:
     prompt: "Do you really want to remove the apache site '{{ name }}' and all of its data?"
   register: removal_prompt
   when: not force_removal
 
-- name: "Apache | Debian | Remove Site '{{ name }}' | Removing site"
+- name: "Apache | Remove Site '{{ name }}' | Removing site"
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
@@ -23,7 +23,7 @@
     - "{{ APACHE_CONFIG.ssl.path }}/{{ name }}.chain.crt"
     - "{{ APACHE_CONFIG.ssl.path }}/{{ name }}.fullchain.crt"
 
-- name: "Apache | Debian | Remove Site '{{ name }}' | Removing document root"
+- name: "Apache | Remove Site '{{ name }}' | Removing document root"
   ansible.builtin.file:
     path: "{{ site.serve.path }}"
     state: absent

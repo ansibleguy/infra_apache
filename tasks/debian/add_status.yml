@@ -1,13 +1,13 @@
 ---
 
-- name: Apache | Debian | Status page | Configuring listen-port
+- name: Apache | Status page | Configuring listen-port
   ansible.builtin.lineinfile:
     path: '/etc/apache2/ports.conf'
     line: "Listen {{ APACHE_CONFIG.status_page.port }}"
   ignore_errors: true
   tags: [config, sites, base]
 
-- name: Apache | Debian | Status page | Configuring site
+- name: Apache | Status page | Configuring site
   ansible.builtin.template:
     src: 'templates/etc/apache2/sites-available/status.conf.j2'
     dest: '/etc/apache2/sites-available/status.conf'
@@ -16,7 +16,7 @@
     mode: 0640
   tags: [config, sites, base]
 
-- name: Apache | Debian | Status page | Enabling site
+- name: Apache | Status page | Enabling site
   ansible.builtin.file:
     state: link
     src: '/etc/apache2/sites-available/status.conf'

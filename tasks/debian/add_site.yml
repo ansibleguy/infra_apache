@@ -2,29 +2,29 @@
 
 # todo: option for security.txt
 
-- name: "Apache | Debian | Site '{{ name }}' | Showing debug info - user provided config"
+- name: "Apache | Site '{{ name }}' | Showing debug info - user provided config"
   ansible.builtin.debug:
     var: site_item.value
   when: debug | bool
 
-- name: "Apache | Debian | Site '{{ name }}' | Showing debug info - running config"
+- name: "Apache | Site '{{ name }}' | Showing debug info - running config"
   ansible.builtin.debug:
     var: site
   when: debug | bool
 
-- name: "Apache | Debian | Site '{{ name }}' | Checking config"
+- name: "Apache | Site '{{ name }}' | Checking config"
   ansible.builtin.fail:
     msg: "The required site-configuration was not provided!
     Needed: 'domain'"
   when: site.domain is none or site.domain is undefined
   tags: [config, sites, certs]
 
-- name: "Apache | Debian | Site '{{ name }}' | Configuring certificates"
+- name: "Apache | Site '{{ name }}' | Configuring certificates"
   ansible.builtin.import_tasks: add_certs.yml
   when: "site.ssl.mode in ['selfsigned', 'existing', 'ca']"
   tags: [sites, certs]
 
-- name: "Apache | Debian | Site '{{ name }}' | Configuring ipv4 listen-ports"
+- name: "Apache | Site '{{ name }}' | Configuring ipv4 listen-ports"
   ansible.builtin.lineinfile:
     path: '/etc/apache2/ports.conf'
     line: "Listen {{ port }}"
@@ -41,7 +41,7 @@
     - "{{ site.port_ssl }}"
   tags: [config, sites]
 
-- name: "Apache | Debian | Site '{{ name }}' | Configuring ipv6 listen-ports"
+- name: "Apache | Site '{{ name }}' | Configuring ipv6 listen-ports"
   ansible.builtin.lineinfile:
     path: '/etc/apache2/ports.conf'
     line: "Listen [::]:{{ port }}"
@@ -54,7 +54,7 @@
   when: APACHE_CONFIG.ipv6
   tags: [config, sites]
 
-- name: "Apache | Debian | Site '{{ name }}' | Create root directory"
+- name: "Apache | Site '{{ name }}' | Create root directory"
   ansible.builtin.file:
     path: "{{ site.serve.path }}"
     state: directory
@@ -64,7 +64,7 @@
   when: site.mode == 'serve'
   tags: [sites]
 
-- name: "Apache | Debian | Site '{{ name }}' | Configuring site"
+- name: "Apache | Site '{{ name }}' | Configuring site"
   ansible.builtin.template:
     src: 'templates/etc/apache2/sites-available/site.conf.j2'
     dest: "/etc/apache2/sites-available/site_{{ name }}.conf"
@@ -73,7 +73,7 @@
     mode: 0644
   tags: [config, sites]
 
-- name: "Apache | Debian | Site '{{ name }}' | Enabling site"
+- name: "Apache | Site '{{ name }}' | Enabling site"
   ansible.builtin.file:
     state: link
     src: "/etc/apache2/sites-available/site_{{ name }}.conf"

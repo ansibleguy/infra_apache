@@ -1,6 +1,6 @@
 ---
 
-- name: Apache | Debian | Removing status page
+- name: Apache | Removing status page
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent

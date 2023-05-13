@@ -1,30 +1,30 @@
 ---
 
-- name: Apache | Debian | Showing debug info - user provided config
+- name: Apache | Showing debug info - user provided config
   ansible.builtin.debug:
     var: apache
   when: debug | bool
 
-- name: Apache | Debian | Showing debug info - running config
+- name: Apache | Showing debug info - running config
   ansible.builtin.debug:
     var: APACHE_CONFIG
   when: debug | bool
 
-- name: Apache | Debian | Install apache
+- name: Apache | Install apache
   ansible.builtin.apt:
     name: "{{ APACHE_HC.packages }}"
     state: present
     update_cache: true
   tags: [base]
 
-- name: Apache | Debian | Creating service user
+- name: Apache | Creating service user
   ansible.builtin.user:
     name: "{{ APACHE_CONFIG.user }}"
     shell: '/usr/sbin/nologin'
     comment: 'Apache Service User'
   tags: [base]
 
-- name: Apache | Debian | Setting service user
+- name: Apache | Setting service user
   ansible.builtin.lineinfile:
     state: present
     path: '/etc/apache2/envvars'
@@ -37,14 +37,14 @@
   tags: [base, config]
 
 # NOTE: a2enmod/a2dismod command saves time in comparison to the community 'apache2_module' module
-- name: Apache | Debian | Enabling apache modules
+- name: Apache | Enabling apache modules
   ansible.builtin.command: "a2enmod {{ APACHE_CONFIG.modules.present | enmod_list(APACHE_CONFIG.modules.absent) }}"
   register: apache_mods_enable_raw
   changed_when: "'restart apache2' in apache_mods_enable_raw.stdout"
   when: APACHE_CONFIG.modules.present | ensure_list | length > 0
   tags: [base]
 
-- name: Apache | Debian | Disabling apache modules
+- name: Apache | Disabling apache modules
   ansible.builtin.command: "a2dismod -f {{ APACHE_CONFIG.modules.absent | mod_list }}"
   register: apache_mods_disable_raw
   changed_when: "'restart apache2' in apache_mods_disable_raw.stdout"
@@ -53,7 +53,7 @@
 
 # todo: configure module settings
 
-- name: Apache | Debian | Adding main settings
+- name: Apache | Adding main settings
   ansible.builtin.lineinfile:
     state: present
     path: '/etc/apache2/apache2.conf'
@@ -64,7 +64,7 @@
   with_dict: "{{ APACHE_CONFIG.settings }}"
   tags: [config, base]
 
-- name: Apache | Debian | Restarting apache
+- name: Apache | Restarting apache
   ansible.builtin.systemd:
     name: 'apache2.service'
     state: restarted
@@ -76,7 +76,7 @@
   tags: [base, config]
 
 # is an additional site-loop since certificates can be pre-/absent
-- name: Apache | Debian |  Getting certificates using LetsEncrypt
+- name: Apache |  Getting certificates using LetsEncrypt
   ansible.builtin.include_role:
     name: ansibleguy.infra_certs
   when: site.ssl.mode == 'letsencrypt'
@@ -107,7 +107,7 @@
     apply:
       tags: [certs, sites]
 
-- name: Apache | Debian | Disabling default apache sites
+- name: Apache | Disabling default apache sites
   ansible.builtin.file:
     state: absent
     dest: "/etc/apache2/sites-enabled/{{ item }}"
@@ -116,7 +116,7 @@
     - 'default-ssl.conf'
   tags: [config, base]
 
-- name: Apache | Debian | Removing status page
+- name: Apache | Removing status page
   ansible.builtin.include_tasks: rm_status.yml
   when: APACHE_CONFIG.status_page.state != 'present'
   args:
@@ -124,7 +124,7 @@
       tags: [config, sites, base]
   tags: [config, sites, base]
 
-- name: Apache | Debian | Removing site
+- name: Apache | Removing site
   ansible.builtin.include_tasks: rm_site.yml
   when: site.state != 'present'
   vars:
@@ -140,19 +140,19 @@
     apply:
       tags: [config, sites, certs]
 
-- name: Apache | Debian | Reloading apache
+- name: Apache | Reloading apache
   ansible.builtin.systemd:
     name: 'apache2.service'
     state: reloaded
   changed_when: false
   tags: [base, config, sites, certs]
 
-- name: Apache | Debian | Adding status page
+- name: Apache | Adding status page
   ansible.builtin.include_tasks: add_status.yml
   when: APACHE_CONFIG.status_page.state == 'present'
   tags: [config, sites, base]
 
-- name: Apache | Debian | Adding site
+- name: Apache | Adding site
   ansible.builtin.include_tasks: add_site.yml
   when: site.state == 'present'
   vars:
@@ -168,14 +168,14 @@
     apply:
       tags: [config, sites, certs]
 
-- name: Apache | Debian | Starting/Enabling apache
+- name: Apache | Starting/Enabling apache
   ansible.builtin.systemd:
     name: 'apache2.service'
     enabled: yes
     state: started
   tags: [base]
 
-- name: Apache | Debian | Reloading apache
+- name: Apache | Reloading apache
   ansible.builtin.systemd:
     name: 'apache2.service'
     enabled: yes
