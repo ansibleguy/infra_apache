@@ -93,3 +93,5 @@ defaults_apache:
     restricted_methods: ['GET', 'POST', 'HEAD']
 
 APACHE_CONFIG: "{{ defaults_apache | combine(apache, recursive=true) }}"
+
+debug: false

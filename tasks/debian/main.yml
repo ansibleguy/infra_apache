@@ -3,16 +3,12 @@
 - name: Apache | Debian | Showing debug info - user provided config
   ansible.builtin.debug:
     var: apache
-  when:
-    - debug is defined
-    - debug
+  when: debug | bool
 
 - name: Apache | Debian | Showing debug info - running config
   ansible.builtin.debug:
     var: APACHE_CONFIG
-  when:
-    - debug is defined
-    - debug
+  when: debug | bool
 
 - name: Apache | Debian | Install apache
   ansible.builtin.apt:
