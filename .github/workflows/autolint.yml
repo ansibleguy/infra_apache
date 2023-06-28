@@ -39,8 +39,8 @@ jobs:
 
       - name: Running PyLint (*.py.j2)
         run: |
-          if [ -f ".pylintrc_j2" ]; then j2_cnf=" --rcfile $(pwd)/.pylintrc_j2"; else j2_cnf=''; fi
-          find -type f -name *.py.j2 -print0 | xargs --no-run-if-empty -0 -n1 pylint${j2_cnf}
+          if [ -f ".pylintrc_j2" ]; then j2_cnf=".pylintrc_j2"; else j2_cnf='.pylintrc'; fi
+          find -type f -name *.py.j2 -print0 | xargs --no-run-if-empty -0 -n1 pylint --rcfile "$(pwd)/${j2_cnf}"
         shell: bash
 
       - name: Running YamlLint
@@ -49,8 +49,8 @@ jobs:
 
       - name: Preparing collection for AnsibleLint
         run: |
-          mkdir -p /tmp/ansible_lint/roles
-          ln -s ${{ github.workspace }} /tmp/ansible_lint/roles
+          mkdir -p "/tmp/ansible_lint/roles/${{ github.event.repository.name }}"
+          ln -s "${{ github.workspace }}" "/tmp/ansible_lint/roles/${{ github.event.repository.name }}"
         shell: bash
 
       - name: Running AnsibleLint
