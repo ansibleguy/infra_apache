@@ -157,7 +157,7 @@
   when: site.state == 'present'
   vars:
     site: "{{ defaults_site | combine(site_item.value, recursive=true) }}"
-    name: "{{ site_item.key | safe_key }}"
+    name: "{{ site_item.value.name | default(site_item.key) }}"
     path: "{{ site.serve.path }}"
   loop_control:
     loop_var: site_item
