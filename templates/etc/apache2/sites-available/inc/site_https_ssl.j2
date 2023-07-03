@@ -4,7 +4,7 @@
     SSLEngine on
     SSLCertificateKeyFile {{ APACHE_CONFIG.ssl.path }}/{{ name }}.key
     SSLCertificateFile {{ APACHE_CONFIG.ssl.path }}/{{ name }}.crt
-{% if site.ssl.mode != 'selfsigned' %}
+{% if site.ssl.mode != 'selfsigned' and not site.ssl.bundle | bool %}
     SSLCertificateChainFile {{ APACHE_CONFIG.ssl.path }}/{{ name }}{% if site.ssl.mode == 'letsencrypt' %}.fullchain{% else %}.chain{% endif %}.crt
 {% endif %}
   </IfModule>

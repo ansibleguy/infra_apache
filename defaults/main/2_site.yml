@@ -8,6 +8,9 @@ defaults_site:
   port_plain: 80
   port_ssl: 443
   listen: '*'
+  name:
+  # name is used to set the filename of of the apache config file under the
+  # sites_available directory (like "site_{{name}}.conf").
   domain:
   aliases: []
   ip:
@@ -40,6 +43,11 @@ defaults_site:
     # letsencrypt:
     #   Host needs to have a valid public dns record pointed at it
     #   Needs to be publicly reachable over port 80/tcp
+    bundle: false
+    # If all necessary intermediate certificates are included in the certificate
+    # file, set bundle to true. This will prevent configuring an
+    # SSLCertificateChainFile in the apache ssl configuration, as the chain file
+    # will not exist in this use case & the config option should not be included
     cert:
       name:
       cn: 'Apache Certificate'
