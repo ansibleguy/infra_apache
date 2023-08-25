@@ -18,15 +18,26 @@
 {% endif %}
 
   # security config
-{% if site.security.restrict_methods %}
+{% if site.security.restrict_methods | bool %}
   <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteCond %{REQUEST_METHOD} ^(?!{% for method in APACHE_CONFIG.security.restricted_methods %}{{ method }}{% if not loop.last %}|{% endif %}{% endfor %})
-    RewriteRule .* - [F]
+    RewriteCond %{REQUEST_METHOD} ^(?!{{ for method in APACHE_CONFIG.security.restricted_methods | join('|') }})
+    RewriteRule .* - [L,R=405]
   </IfModule>
   <Directory />
     <LimitExcept {% for method in APACHE_CONFIG.security.restricted_methods %}{{ method }} {% endfor %}>
       Require all denied
     </LimitExcept>
+  </Directory>
+{% elif site.security.deny_dangerous_methods | bool %}
+  <IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_METHOD} ^({{ for method in APACHE_CONFIG.security.dangerous_methods | join('|') }})
+    RewriteRule .* - [L,R=405]
+  </IfModule>
+  <Directory />
+    <Limit {% for method in APACHE_CONFIG.security.dangerous_methods %}{{ method }} {% endfor %}>
+      Require all denied
+    </Limit>
   </Directory>
 {% endif %}

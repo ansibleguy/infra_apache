@@ -91,5 +91,6 @@ defaults_apache:
 
   security:
     restricted_methods: ['GET', 'POST', 'HEAD']
+    dangerous_methods: ['TRACE', 'CONNECT']
 
 debug: false
