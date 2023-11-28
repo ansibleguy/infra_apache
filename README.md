@@ -15,6 +15,10 @@ Ansible Role to deploy one or multiple Apache2 sites on a linux server.
 ## Install
 
 ```bash
+# latest
+ansible-galaxy role install git+https://github.com/ansibleguy/infra_apache
+
+# from galaxy
 ansible-galaxy install ansibleguy.infra_apache
 
 # or to custom role-path
