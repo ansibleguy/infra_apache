@@ -9,7 +9,7 @@ defaults_site:
   port_ssl: 443
   listen: '*'
   name:
-  # name is used to set the filename of of the apache config file under the
+  # name is used to set the filename of the apache config file under the
   # sites_available directory (like "site_{{name}}.conf").
   domain:
   aliases: []

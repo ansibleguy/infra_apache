@@ -89,8 +89,9 @@ Also some basic mods will get a pre-config added. (_prefork, evasive_)
 * **Note:** This role expects that the site's unencrypted 'server' will only redirect to its encrypted connection.
 
 
-* **Note:** If you want all domain-names to get 'caught' by a site/server you need to add a star/wildcard '*' as alias!<br>
-BUT: You still have to provide a main domain!
+* **Note:** If you want any requested domain to get handled by a site/server you need to add a **wildcard** '*' as alias!<br>
+
+   BUT: You still have to provide a main domain!
 
 
 * **Warning:** Not every setting/variable you provide will be checked for validity. Bad config might break the role!
