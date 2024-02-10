@@ -21,7 +21,7 @@
 {% if site.security.restrict_methods | bool %}
   <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteCond %{REQUEST_METHOD} ^(?!{{ for method in APACHE_CONFIG.security.restricted_methods | join('|') }})
+    RewriteCond %{REQUEST_METHOD} ^(?!{{ APACHE_CONFIG.security.restricted_methods | join('|') }})
     RewriteRule .* - [L,R=405]
   </IfModule>
   <Directory />
@@ -32,7 +32,7 @@
 {% elif site.security.deny_dangerous_methods | bool %}
   <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteCond %{REQUEST_METHOD} ^({{ for method in APACHE_CONFIG.security.dangerous_methods | join('|') }})
+    RewriteCond %{REQUEST_METHOD} ^({{ APACHE_CONFIG.security.dangerous_methods | join('|') }})
     RewriteRule .* - [L,R=405]
   </IfModule>
   <Directory />
