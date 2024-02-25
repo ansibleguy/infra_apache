@@ -107,6 +107,8 @@ Also some basic mods will get a pre-config added. (_prefork, evasive_)
 
 ## Usage
 
+You want a simple Ansible GUI? Check-out my [Ansible WebUI](https://github.com/ansibleguy/webui)
+
 ### Config
 
 Define the apache dictionary as needed!
