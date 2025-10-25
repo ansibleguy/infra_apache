@@ -4,16 +4,16 @@
 
 Ansible Role to deploy one or multiple Apache2 sites on a linux server.
 
-[![Lint](https://github.com/ansibleguy/infra_apache/actions/workflows/lint.yml/badge.svg)](https://github.com/ansibleguy/infra_apache/actions/workflows/lint.yml)
-[![Ansible Galaxy](https://badges.ansibleguy.net/galaxy.badge.svg)](https://galaxy.ansible.com/ui/standalone/roles/ansibleguy/infra_apache)
+[![Lint](https://github.com/O-X-L/ansible-role-apache2/actions/workflows/lint.yml/badge.svg)](https://github.com/O-X-L/ansible-role-apache2/actions/workflows/lint.yml)
+[![Ansible Galaxy](https://badges.oss.oxl.app/galaxy.badge.svg)](https://galaxy.ansible.com/ui/standalone/roles/oxlorg/apache2)
 
 **Molecule Integration-Tests**:
 
-* Status: [![Molecule Test Status](https://badges.ansibleguy.net/infra_apache.molecule.svg)](https://github.com/ansibleguy/_meta_cicd/blob/latest/templates/usr/local/bin/cicd/molecule.sh.j2) |
-[![Functional-Tests](https://github.com/ansibleguy/infra_apache/actions/workflows/integration_test_result.yml/badge.svg)](https://github.com/ansibleguy/infra_apache/actions/workflows/integration_test_result.yml)
-* Logs: [API](https://ci.ansibleguy.net/api/job/ansible-test-molecule-infra_apache/logs?token=2b7bba30-9a37-4b57-be8a-99e23016ce70&lines=1000) | [Short](https://badges.ansibleguy.net/log/molecule_infra_apache_test_short.log) | [Full](https://badges.ansibleguy.net/log/molecule_infra_apache_test.log)
+* Status: [![Molecule Test Status](https://badges.oss.oxl.app/infra_apache.molecule.svg)](https://github.com/O-X-L/ansible-role-oxl-cicd/blob/latest/templates/usr/local/bin/cicd/molecule.sh.j2) |
+[![Functional-Tests](https://github.com/O-X-L/ansible-role-apache2/actions/workflows/integration_test_result.yml/badge.svg)](https://github.com/O-X-L/ansible-role-apache2/actions/workflows/integration_test_result.yml)
+* Logs: [API](https://ci.oss.oxl.app/api/job/ansible-test-molecule-infra_apache/logs?token=2b7bba30-9a37-4b57-be8a-99e23016ce70&lines=1000) | [Short](https://badges.oss.oxl.app/log/molecule_infra_apache_test_short.log) | [Full](https://badges.oss.oxl.app/log/molecule_infra_apache_test.log)
 
-Internal CI: [Tester Role](https://github.com/ansibleguy/_meta_cicd) | [Jobs API](https://github.com/O-X-L/github-self-hosted-jobs-systemd)
+Internal CI: [Tester Role](https://github.com/O-X-L/ansible-role-oxl-cicd) | [Jobs API](https://github.com/O-X-L/github-self-hosted-jobs-systemd)
 
 **Tested:**
 * Debian 11
@@ -25,13 +25,13 @@ Internal CI: [Tester Role](https://github.com/ansibleguy/_meta_cicd) | [Jobs API
 
 ```bash
 # latest
-ansible-galaxy role install git+https://github.com/ansibleguy/infra_apache
+ansible-galaxy role install git+https://github.com/O-X-L/ansible-role-apache2
 
 # from galaxy
-ansible-galaxy install ansibleguy.infra_apache
+ansible-galaxy install oxlorg.apache2
 
 # or to custom role-path
-ansible-galaxy install ansibleguy.infra_apache --roles-path ./roles
+ansible-galaxy install oxlorg.apache2 --roles-path ./roles
 
 # install dependencies
 ansible-galaxy install -r requirements.yml
@@ -53,7 +53,7 @@ ansible-galaxy install -r requirements.yml
 
 * You want a simple **Ansible GUI**?
 
-  Check-out this [Ansible WebUI](https://github.com/ansibleguy/webui)
+  Check-out this [Ansible WebUI](https://github.com/O-X-L/ansible-webui)
 
 ----
 
@@ -87,16 +87,16 @@ apache:
 
   git_stuff:
     mode: 'redirect'
-    domain: 'ansibleguy.net'
-    aliases: ['www.ansibleguy.net']
+    domain: 'oxl.at'
+    aliases: ['www.oxl.at']
     redirect:
-      target: 'https://github.com/ansibleguy'
+      target: 'https://github.com/O-X-L'
 
     ssl:
       mode: 'letsencrypt'
 
     letsencrypt:
-      email: 'apache@template.ansibleguy.net'
+      email: 'apache@template.oxl.at'
 
     security:
       restrict_methods: false
@@ -147,7 +147,7 @@ ansible-playbook -K -D -i inventory/hosts.yml playbook.yml -e debug=yes
     * IPv6 support disabled (*at least one ipv6 address MUST EXIST*)
 
 
-  * **SSL modes** (_for more info see: [CERT ROLE](https://github.com/ansibleguy/infra_certs)_)
+  * **SSL modes** (_for more info see: [CERT ROLE](https://github.com/O-X-L/ansible-role-certs)_)
     * **selfsigned** => Generate self-signed ones
     * **ca** => Generate a minimal Certificate Authority and certificate signed by it
     * **letsencrypt** => Uses the LetsEncrypt certbot

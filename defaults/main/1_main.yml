@@ -63,7 +63,7 @@ defaults_apache:
     # 'Header set Permissions-Policy': '"none"'
     # 'Header set Content-Security-Policy': '"default-src https:; font-src https:; img-src https:; script-src https:; style-src https:;"'
 
-  ssl:  # see: https://github.com/ansibleguy/infra_certs
+  ssl:  # see: https://github.com/O-X-L/ansible-role-certs
     path: '/etc/apache2/ssl'
     ca:
       file:  # can be used if you want to use an existing ca

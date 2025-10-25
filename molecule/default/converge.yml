@@ -6,14 +6,14 @@
     apache:
       sites:
         test1:
-          domain: 'apache2.test.ansibleguy.net'
+          domain: 'apache2.test.oxl.at'
 
           ssl:
             mode: 'snakeoil'
             cert:
               cn: 'Apache2'
               org: 'AnsibleGuy Test'
-              email: 'testmaster@ansibleguy.net'
+              email: 'testmaster@oxl.at'
 
   roles:
-    - ansibleguy.infra_apache
+    - oxlorg.apache2

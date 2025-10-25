@@ -1,20 +1,22 @@
 ---
 
 galaxy_info:
-  author: 'AnsibleGuy <guy@ansibleguy.net>'
-  namespace: 'ansibleguy'
+  author: 'Rath Pascal <contact@oxl.at>'
+  namespace: 'oxlorg'
   license: 'MIT'
-  issue_tracker_url: 'https://github.com/ansibleguy/infra_apache/issues'
+  issue_tracker_url: 'https://github.com/O-X-L/ansible-role-apache2/issues'
   min_ansible_version: '2.14'
   description: 'Role to deploy apache2 sites on a linux server'
   platforms:
     - name: Debian
       versions:
         - bullseye
+        - bookworm
+        - trixies
   galaxy_tags:
     - 'web'
     - 'webserver'
-    - 'apache'
+    - 'apache2'
 
 collections:
   - 'community.crypto'

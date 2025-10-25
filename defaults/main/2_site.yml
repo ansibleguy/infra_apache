@@ -4,7 +4,7 @@
 defaults_site:
   mode: 'serve'
   state: 'present'
-  admin: 'apache@template.ansibleguy.net'
+  admin: 'apache@template.oxl.at'
   port_plain: 80
   port_ssl: 443
   listen: '*'
@@ -30,17 +30,17 @@ defaults_site:
     deny_dangerous_methods: true  # if 'restrict_methods' is disabled - this will still deny 'TRACE' & 'CONNECT' as they might open your server/services up to attacks
 
   redirect:
-    target: 'https://github.com/ansibleguy'
+    target: 'https://github.com/O-X-L'
     request_uri: false
 
   serve:
     path: '/var/www/html'
 
-  ssl:  # see: https://github.com/ansibleguy/infra_certs
+  ssl:  # see: https://github.com/O-X-L/ansible-role-certs
     mode: 'snakeoil'  # existing/selfsigned/ca/letsencrypt/snakeoil
     # existing:
     #   We expect the certs to be placed in the role's 'files' directory named like the site
-    #   Example: files/certs/ansibleguy.key and files/certs/ansibleguy.crt
+    #   Example: files/certs/oxlorg.key and files/certs/oxlorg.crt
     # letsencrypt:
     #   Host needs to have a valid public dns record pointed at it
     #   Needs to be publicly reachable over port 80/tcp
